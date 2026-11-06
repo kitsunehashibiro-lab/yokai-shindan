@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>妖怪性格診断・改</title>
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-gold: #d4af37;
+            --ofuda-bg: #fdfaf4;
+            --text-dark: #2c1b18;
+            --theme-color-dark: #0f5c1b;
+            --theme-color-light: #6eed4d;
+            --soul-light: #b9f6ca;
+            --soul-mid: #2ecc71;
+            --soul-glow: #1db947;
+            --soul-accent: #69f0ae;
+            --soul-radius: 12px;
+        }
+
+        body.theme-green { 
+            --theme-color-dark: #0f5c1b; --theme-color-light: #6eed4d; 
+            --soul-light: #ccffda; --soul-mid: #38e54d; --soul-glow: #1db947; --soul-accent: #76ff03;
+        }
+        body.theme-blue { 
+            --theme-color-dark: #0a3d62; --theme-color-light: #2cb5e8; 
+            --soul-light: #cceeff; --soul-mid: #29b6f6; --soul-glow: #0288d1; --soul-accent: #40c4ff;
+        }
+        body.theme-yellow { 
+            --theme-color-dark: #795516; --theme-color-light: #e8c02c; 
+            --soul-light: #fff9c4; --soul-mid: #ffca28; --soul-glow: #f59e0b; --soul-accent: #ffd740;
+        }
+        body.theme-purple { 
+            --theme-color-dark: #4a195b; --theme-color-light: #ba55d3; 
+            --soul-light: #f3e5f5; --soul-mid: #d05ce3; --soul-glow: #9c27b0; --soul-accent: #ea80fc;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--theme-color-dark) 0%, var(--theme-color-light) 100%);
+            color: var(--text-dark);
+            font-family: 'Shippori Mincho', 'Yu Mincho', 'MS PMincho', serif;
+            margin: 0; padding: 50px 0; box-sizing: border-box;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; text-align: center; overflow-x: hidden;
+            transition: background 1.5s ease-in-out;
+        }
+
+        /* ルビの調整 */
+        ruby { ruby-align: center; }
+        rt { font-size: 0.6em; color: inherit; opacity: 0.85; transform: translateY(-1px); }
+
+        .checker-pattern {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image:
+              linear-gradient(45deg, rgba(0,0,0,0.05) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.05)),
+              linear-gradient(45deg, rgba(0,0,0,0.05) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.05), 75%, rgba(0,0,0,0.05));
+            background-size: 80px 80px; background-position: 0 0, 40px 40px;
+            z-index: 1; pointer-events: none;
+        }
+
+        .container-wrapper {
+            position: relative; z-index: 10; width: 90%; max-width: 650px;
+            margin: auto 0; filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+        }
+
+        .container {
+            padding: 35px 25px; background: rgba(255, 252, 248, 0.95);
+            clip-path: polygon(20px 0, calc(100% - 20px) 0, 100% 20px, 100% calc(100% - 20px), calc(100% - 20px) 100%, 20px 100%, 0 calc(100% - 20px), 0 20px);
+        }
+
+        h1, h2, h3 { color: var(--theme-color-dark); font-weight: 700; margin-top: 0; transition: color 1.5s ease;}
+        h1 { font-size: 32px; letter-spacing: 4px; margin-bottom: 10px; border-bottom: 2px solid var(--theme-color-dark); display: inline-block; padding: 0 20px 10px; transition: border-color 1.5s ease;}
+        .subtitle { color: var(--theme-color-dark); font-size: 14px; margin-bottom: 30px; opacity: 0.8; transition: color 1.5s ease;}
+        p { line-height: 2.0; font-size: 17px; margin-bottom: 20px; font-weight: bold; }
+        
+        .ofuda-btn {
+            display: block; width: 100%; padding: 20px 15px; margin: 15px 0;
+            background-color: var(--ofuda-bg); color: var(--text-dark);
+            border: 3px solid var(--theme-color-dark); border-radius: 4px;
+            font-family: inherit; font-size: 16px; font-weight: bold; line-height: 1.6;
+            cursor: pointer; position: relative; transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 1.5s ease;
+            box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(0, 0, 0, 0.03) 4px, rgba(0, 0, 0, 0.03) 8px);
+        }
+        .ofuda-btn::after {
+            content: "怪"; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-size: 50px; color: var(--theme-color-dark); opacity: 0.08; pointer-events: none; transition: color 1.5s ease;
+        }
+        .ofuda-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); background-color: #fff; }
+        .ofuda-btn:disabled { pointer-events: none; opacity: 0.7; }
+
+        .btn-back {
+            background: transparent; border: none; color: var(--theme-color-dark);
+            font-family: inherit; font-weight: bold; font-size: 14px; margin-top: 15px;
+            cursor: pointer; opacity: 0.7; transition: opacity 0.3s, color 1.5s ease;
+            text-decoration: underline; padding: 10px; display: inline-block;
+        }
+        .btn-back:hover { opacity: 1; }
+        .btn-back:disabled { pointer-events: none; opacity: 0.3; }
+
+        .hitodama-container { height: 150px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; position: relative; }
+        #hitodama-orbit { display: flex; justify-content: center; align-items: center; position: relative; }
+        #hitodama-orbit.stage-1 { animation: orbitCircleSlow 4s linear infinite; }
+        #hitodama-orbit.stage-2 { animation: orbitFigureEight 3.6s ease-in-out infinite; }
+        #hitodama-orbit.stage-3 { animation: orbitCircleFast 2.2s linear infinite; }
+        #hitodama-orbit.stage-4 { animation: orbitClimax 1.2s linear infinite; }
+
+        @keyframes orbitCircleSlow { 0% { transform: rotate(0deg) translateX(10px) rotate(0deg); } 100% { transform: rotate(360deg) translateX(10px) rotate(-360deg); } }
+        @keyframes orbitFigureEight { 0%, 100% { transform: translate(0, 0); } 12.5% { transform: translate(14px, -9px); } 25% { transform: translate(20px, 0); } 37.5% { transform: translate(14px, 9px); } 50% { transform: translate(0, 0); } 62.5% { transform: translate(-14px, -9px); } 75% { transform: translate(-20px, 0); } 87.5% { transform: translate(-14px, 9px); } }
+        @keyframes orbitCircleFast { 0% { transform: rotate(0deg) translateX(16px) rotate(0deg); } 100% { transform: rotate(-360deg) translateX(16px) rotate(360deg); } }
+        @keyframes orbitClimax { 0%, 100% { transform: rotate(0deg) translateX(18px) rotate(0deg) scale(1); } 50% { transform: rotate(180deg) translateX(18px) rotate(-180deg) scale(1.15); } }
+
+        #hitodama-wrapper { transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; justify-content: center; align-items: center; position: relative; }
+
+        #hitodama {
+            width: 24px; height: 24px; background: radial-gradient(circle, #ffffff 0%, #ffffff 48%, var(--soul-light) 78%, var(--soul-mid) 100%);
+            border: none; border-radius: 50%; box-shadow: 0 0 10px #ffffff, 0 0 20px var(--soul-mid), 0 0 35px var(--soul-glow);
+            opacity: 0; transition: width 0.3s ease, height 0.3s ease, box-shadow 0.5s ease, background 1s ease;
+            animation: pulseGlow 0.8s infinite alternate ease-in-out; position: relative; z-index: 5;
+        }
+        @keyframes pulseGlow { 0% { transform: scale(0.95); filter: brightness(1); } 100% { transform: scale(1.06); filter: brightness(1.15); } }
+
+        .soul-ripple {
+            position: absolute; width: calc(var(--soul-radius) * 2); height: calc(var(--soul-radius) * 2);
+            border-radius: 50%; border: 2px solid var(--soul-mid); box-shadow: 0 0 10px #ffffff, 0 0 16px var(--soul-light);
+            opacity: 0; pointer-events: none; z-index: 3; animation: rippleExpand 2.2s ease-out infinite; transition: border-color 1s ease, box-shadow 1s ease;
+        }
+        .soul-ripple.delay { animation-delay: 1.1s; }
+        @keyframes rippleExpand { 0% { transform: scale(0.8); opacity: 0.85; } 100% { transform: scale(2.3); opacity: 0; } }
+
+        .mini-orbit { position: absolute; top: 50%; left: 50%; width: 0; height: 0; opacity: 0; transition: opacity 0.5s ease, transform 0.6s ease-in; pointer-events: none; z-index: 6; }
+        .mini-orbit.active { opacity: 1; }
+        .mini-orbit.absorb-all { animation: none !important; transform: rotate(720deg) translateX(0px) scale(0) !important; opacity: 0 !important; transition: transform 0.55s cubic-bezier(0.6, -0.28, 0.735, 0.045), opacity 0.55s ease-in; }
+
+        .mini-soul {
+            width: var(--s-size, 8px); height: var(--s-size, 8px); border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 0%, #ffffff 55%, var(--soul-light) 82%, var(--s-tone, var(--soul-mid)) 100%);
+            box-shadow: 0 0 6px #ffffff, 0 0 12px var(--s-tone, var(--soul-mid)), 0 0 18px var(--soul-glow);
+            position: absolute; top: calc(var(--s-size, 8px) / -2); left: calc(var(--s-size, 8px) / -2);
+            animation: miniFlicker 0.4s infinite alternate ease-in-out; transition: background 1s ease, box-shadow 1s ease;
+        }
+        @keyframes miniFlicker { 0% { transform: scale(0.85); opacity: 0.9; } 100% { transform: scale(1.2); opacity: 1; } }
+
+        @keyframes revolve {
+            0%   { transform: rotate(var(--start-deg, 0deg)) translateX(calc(var(--soul-radius) + var(--orbit-dist, 15px))) scale(0.9); }
+            50%  { transform: rotate(calc(var(--start-deg, 0deg) + 180deg)) translateX(calc(var(--soul-radius) + var(--orbit-dist, 15px) + 5px)) scale(1.15); }
+            100% { transform: rotate(calc(var(--start-deg, 0deg) + 360deg)) translateX(calc(var(--soul-radius) + var(--orbit-dist, 15px))) scale(0.9); }
+        }
+
+        .m-1  { --s-size: 7px;  --orbit-dist: 10px; --start-deg: 0deg;   --s-tone: var(--soul-mid);    animation: revolve 1.7s linear infinite; }
+        .m-2  { --s-size: 15px; --orbit-dist: 18px; --start-deg: 72deg;  --s-tone: var(--soul-glow);   animation: revolve 2.6s linear infinite reverse; }
+        .m-3  { --s-size: 9px;  --orbit-dist: 26px; --start-deg: 144deg; --s-tone: var(--soul-accent); animation: revolve 2.1s linear infinite; }
+        .m-4  { --s-size: 18px; --orbit-dist: 14px; --start-deg: 216deg; --s-tone: var(--soul-mid);    animation: revolve 3.1s linear infinite reverse; }
+        .m-5  { --s-size: 6px;  --orbit-dist: 32px; --start-deg: 288deg; --s-tone: var(--soul-glow);   animation: revolve 1.4s linear infinite; }
+        .m-6  { --s-size: 13px; --orbit-dist: 22px; --start-deg: 36deg;  --s-tone: var(--soul-accent); animation: revolve 2.4s linear infinite reverse; }
+        .m-7  { --s-size: 10px; --orbit-dist: 38px; --start-deg: 108deg; --s-tone: var(--soul-mid);    animation: revolve 1.9s linear infinite; }
+        .m-8  { --s-size: 16px; --orbit-dist: 29px; --start-deg: 180deg; --s-tone: var(--soul-glow);   animation: revolve 2.9s linear infinite reverse; }
+        .m-9  { --s-size: 8px;  --orbit-dist: 44px; --start-deg: 252deg; --s-tone: var(--soul-accent); animation: revolve 1.6s linear infinite; }
+        .m-10 { --s-size: 12px; --orbit-dist: 35px; --start-deg: 324deg; --s-tone: var(--soul-mid);    animation: revolve 2.2s linear infinite reverse; }
+
+        .soul-vortex {
+            position: absolute; width: 180px; height: 180px; border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 0%, #ffffff 35%, var(--soul-light) 60%, var(--soul-mid) 78%, transparent 90%);
+            box-shadow: 0 0 35px #ffffff, 20px -20px 45px var(--soul-mid), -20px 20px 45px var(--soul-glow), 20px 20px 55px var(--soul-accent);
+            opacity: 0; transform: scale(0.2) rotate(0deg); pointer-events: none; z-index: 2; filter: blur(3px);
+        }
+        .soul-vortex.summon-active { animation: vortexSwirl 1.4s cubic-bezier(0.2, 0.8, 0.3, 1) forwards; }
+        @keyframes vortexSwirl { 0% { opacity: 0; transform: scale(0.2) rotate(0deg); } 30% { opacity: 1; transform: scale(1.2) rotate(180deg); } 70% { opacity: 1; transform: scale(1.8) rotate(420deg); } 100% { opacity: 1; transform: scale(4.5) rotate(720deg); } }
+
+        .climax-ripple { position: fixed; border-radius: 50%; pointer-events: none; z-index: 940; transform: translate(-50%, -50%) scale(0.2); opacity: 0.95; }
+        .burst-hitodama { position: fixed; border-radius: 50%; pointer-events: none; z-index: 950; }
+        .fire-particle { position: fixed; border-radius: 50%; pointer-events: none; z-index: 100; }
+        
+        .flash-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #ffffff; z-index: 999; pointer-events: none; opacity: 0; }
+
+        /* 音声許可モーダル */
+        .audio-modal {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85); z-index: 10000; display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+        }
+        .audio-modal.active { opacity: 1; pointer-events: auto; }
+        .audio-modal-content {
+            background: var(--ofuda-bg); padding: 40px 30px; border-radius: 8px; border: 3px solid var(--theme-color-dark);
+            max-width: 90%; width: 420px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .audio-modal h2 { font-size: 24px; margin-bottom: 20px; border: none; padding: 0; color: var(--theme-color-dark); }
+        .audio-modal p { font-size: 16px; font-weight: bold; margin-bottom: 30px; line-height: 1.8; color: var(--text-dark); }
+        .audio-btn-group { display: flex; gap: 15px; justify-content: center; }
+        .audio-btn { padding: 14px 10px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; font-family: inherit; transition: transform 0.2s ease, filter 0.2s ease; flex: 1; white-space: nowrap; }
+        .audio-btn.on { background: var(--theme-color-dark); color: #fff; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .audio-btn.off { background: transparent; color: var(--text-dark); border: 2px solid var(--theme-color-dark); }
+        .audio-btn:hover { filter: brightness(0.9); transform: translateY(-2px); }
+
+        .btn-start { 
+            background-color: var(--theme-color-dark); color: #fff; border: none; font-size: 20px; margin-top: 20px; padding: 15px; width: 100%; 
+            cursor: pointer; font-family: inherit; font-weight: bold; border-radius: 4px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); transition: background-color 1.5s ease, filter 0.3s ease, transform 0.3s ease;
+        }
+        .btn-start:hover { filter: brightness(0.85); transform: translateY(-2px); }
+
+        .share-container { display: flex; justify-content: center; gap: 12px; margin-top: 25px; flex-wrap: wrap; }
+        .share-btn {
+            background: rgba(255, 255, 255, 0.85); border: 1.5px solid var(--theme-color-dark);
+            color: var(--text-dark); border-radius: 20px; padding: 10px 18px; font-size: 14px;
+            font-weight: bold; cursor: pointer; transition: all 0.3s ease; font-family: inherit;
+        }
+        .share-btn:hover { background: var(--theme-color-dark); color: #fff; }
+
+        .result-title { font-size: 30px; color: var(--theme-color-dark); font-weight: 700; margin-bottom: 5px; transition: color 1.5s ease;}
+        .result-type { font-size: 20px; color: #555; margin-top: 5px; font-weight: bold;}
+        .result-name { font-size: 40px; margin: 10px 0 20px; color: var(--theme-color-dark); transition: color 1.5s ease;}
+        .progress { font-size: 15px; color: var(--theme-color-dark); font-weight: bold; margin-bottom: 5px; transition: color 1.5s ease;}
+        .result-section-label { font-size: 18px; font-weight: bold; color: var(--theme-color-dark); margin-top: 26px; margin-bottom: 10px; text-align: center; transition: color 1.5s ease; letter-spacing: 2px;}
+        .result-desc { text-align: center; background: rgba(0, 0, 0, 0.03); padding: 18px 22px; border-top: 2px solid var(--theme-color-dark); border-bottom: 2px solid var(--theme-color-dark); margin-top: 0; line-height: 2.0; font-size: 16.5px; transition: border-color 1.5s ease; border-radius: 4px; }
+        .result-img-box { width: 100%; max-width: 400px; margin: 0 auto; display: none; border: 2px solid var(--accent-gold); border-radius: 4px; padding: 30px; box-sizing: border-box;}
+        .result-img-box img { width: 100%; height: auto; display: block; filter: drop-shadow(0 0 2mm var(--theme-color-dark)) drop-shadow(0 0 1mm var(--theme-color-dark)); transition: filter 1.5s ease;}
+        
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .fade-target { opacity: 0; }
+        .fade-in-content { animation: fadeInContent 0.6s ease forwards; }
+        @keyframes fadeInContent { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-out-content { animation: fadeOutContent 0.4s ease forwards; }
+        @keyframes fadeOutContent { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-5px); } }
+    </style>
+</head>
+<body class="theme-green">
+
+<div class="checker-pattern"></div>
+<div class="flash-overlay" id="flash-overlay"></div>
+
+<!-- 音声許可パネル -->
+<div id="audio-modal" class="audio-modal active">
+    <div class="audio-modal-content">
+        <h2>【 <ruby>音声<rt>おんせい</rt></ruby>について 】</h2>
+        <p>このサイトではBGMや<ruby>効果音<rt>こうかおん</rt></ruby>が<ruby>流<rt>なが</rt></ruby>れます。<br><ruby>音声<rt>おんせい</rt></ruby>を<ruby>許可<rt>きょか</rt></ruby>してよろしいですか？</p>
+        <div class="audio-btn-group">
+            <button class="audio-btn on" onclick="initSite(true)"><ruby>許可<rt>きょか</rt></ruby>（<ruby>音<rt>おと</rt></ruby>あり）</button>
+            <button class="audio-btn off" onclick="initSite(false)"><ruby>拒否<rt>きょひ</rt></ruby>（<ruby>無音<rt>むおん</rt></ruby>）</button>
+        </div>
+    </div>
+</div>
+
+<audio id="bgm-audio" src="bgm.mp3" loop preload="auto"></audio>
+<audio id="se-absorb" src="absorb.mp3" preload="auto"></audio>
+<audio id="se-climax" src="climax.mp3" preload="auto"></audio>
+
+<div class="container-wrapper">
+    <div class="container">
+        <!-- スタート画面 -->
+        <div id="start-screen" class="screen active">
+            <h1 class="fade-target"><ruby>妖怪<rt>ようかい</rt></ruby><ruby>性格<rt>せいかく</rt></ruby><ruby>診断<rt>しんだん</rt></ruby></h1>
+            <div class="subtitle fade-target">〜 あなたの<ruby>呼<rt>よ</rt></ruby>び<ruby>声<rt>ごえ</rt></ruby>に<ruby>応<rt>こた</rt></ruby>える<ruby>十六<rt>じゅうろく</rt></ruby>の<ruby>怪異<rt>かいい</rt></ruby> 〜</div>
+            <p class="fade-target"><ruby>全十二問<rt>ぜんじゅうにもん</rt></ruby>の<ruby>問<rt>と</rt></ruby>いに<ruby>直感<rt>ちょっかん</rt></ruby>でお<ruby>答<rt>こた</rt></ruby>えください。<br>あなたの<ruby>魂<rt>たましい</rt></ruby>の<ruby>波長<rt>はちょう</rt></ruby>に<ruby>惹<rt>ひ</rt></ruby>かれ、<ruby>召喚<rt>しょうかん</rt></ruby>される「<ruby>妖怪<rt>ようかい</rt></ruby>」を<ruby>導<rt>みちび</rt></ruby>き<ruby>出<rt>だ</rt></ruby>します。</p>
+            <button class="btn-start fade-target" onclick="startQuiz()"><ruby>召喚<rt>しょうかん</rt></ruby>の<ruby>儀<rt>ぎ</rt></ruby>を<ruby>始<rt>はじ</rt></ruby>める</button>
+            
+            <div class="share-container fade-target">
+                <button class="share-btn" onclick="shareX(false)">𝕏 でシェア</button>
+                <button class="share-btn" onclick="shareIG()">Instagram</button>
+                <button class="share-btn" onclick="copyLink()">🔗 URLコピー</button>
+            </div>
+        </div>
+
+        <!-- 質問画面 -->
+        <div id="question-screen" class="screen">
+            <div class="progress fade-target" id="progress-text"><ruby>第<rt>だい</rt></ruby>1<ruby>問<rt>もん</rt></ruby> / <ruby>全<rt>ぜん</rt></ruby>12<ruby>問<rt>もん</rt></ruby></div>
+            
+            <div class="hitodama-container">
+                <div id="hitodama-orbit" class="stage-1">
+                    <div id="hitodama-wrapper">
+                        <div class="soul-vortex" id="soul-vortex"></div>
+                        <div class="soul-ripple"></div>
+                        <div class="soul-ripple delay"></div>
+                        <div class="mini-orbit m-1"  id="mini-1"><div class="mini-soul"></div></div>
+                        <div class="mini-orbit m-2"  id="mini-2"><div class="mini-soul"></div></div>
+                        <div class="mini-orbit m-3"  id="mini-3"><div class="mini-soul"></div></div>
+                        <div class="mini-orbit m-4"  id="mini-4"><div class="mini-soul"></div></div>
+                        <div class="mini-orbit m-5"  id="mini-5"><div class="mini-soul"></div></div>
+                        <div class="mini-orbit m-6"  id="mini-6"><div class="mini-soul"></div></div>
+                        <div class="mini-orbit m-7"  id="mini-7"><div class="mini-soul"></div></div>
+                        <div class="mini-orbit m-8"  id="mini-8"><div class="mini-soul"></div></div>
+                        <div class="mini-orbit m-9"  id="mini-9"><div class="mini-soul"></div></div>
+                        <div class="mini-orbit m-10" id="mini-10"><div class="mini-soul"></div></div>
+                        <div id="hitodama"></div>
+                    </div>
+                </div>
+            </div>
+
+            <p id="question-text" class="fade-target">質問テキスト</p>
+            
+            <button class="ofuda-btn fade-target" id="btn-a" onclick="answer('A', event)">選択肢A</button>
+            <button class="ofuda-btn fade-target" id="btn-b" onclick="answer('B', event)">選択肢B</button>
+
+            <!-- 戻るボタン -->
+            <button id="btn-back" class="btn-back fade-target" onclick="goBack()" style="display: none;">◀ <ruby>一<rt>ひと</rt></ruby>つ<ruby>前<rt>まえ</rt></ruby>の<ruby>問<rt>と</rt></ruby>いに<ruby>戻<rt>もど</rt></ruby>る</button>
+        </div>
+
+        <!-- 結果画面 -->
+        <div id="result-screen" class="screen">
+            <div class="result-title fade-target"><ruby>召喚完了<rt>しょうかんかんりょう</rt></ruby></div>
+            <div class="result-type fade-target" id="result-mbti"><ruby>共鳴<rt>きょうめい</rt></ruby>した<ruby>波長<rt>はちょう</rt></ruby>: ESTP<ruby>型<rt>がた</rt></ruby></div>
+            <h2 class="result-name fade-target" id="result-name"><ruby>土蜘蛛<rt>つちぐも</rt></ruby></h2>
+            
+            <div class="result-img-box fade-target" id="result-img-box">
+                <img id="result-img" src="" alt="妖怪の絵" onerror="this.parentElement.style.display='none'" onload="this.parentElement.style.display='block'">
+            </div>
+
+            <div class="result-section-label fade-target">【 <ruby>共鳴<rt>きょうめい</rt></ruby>した<ruby>魂<rt>たましい</rt></ruby>の<ruby>性質<rt>せいしつ</rt></ruby> 】</div>
+            <div class="result-desc fade-target" id="result-desc">解説テキスト</div>
+
+            <div class="result-section-label fade-target" style="margin-top: 30px;">【 <ruby>召喚<rt>しょうかん</rt></ruby>された<ruby>妖怪<rt>ようかい</rt></ruby>の<ruby>言<rt>い</rt></ruby>い<ruby>伝<rt>つた</rt></ruby>え 】</div>
+            <div class="result-desc fade-target" id="result-lore">伝承テキスト</div>
+
+            <button class="btn-start fade-target" onclick="resetQuiz()" style="margin-top: 35px;">もう<ruby>一度召喚<rt>いちどしょうかん</rt></ruby>する</button>
+
+            <div class="share-container fade-target">
+                <button class="share-btn" onclick="shareX(true)">𝕏 でシェア</button>
+                <button class="share-btn" onclick="shareIG()">Instagram</button>
+                <button class="share-btn" onclick="copyLink()">🔗 URLコピー</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const themeSoulPalettes = {
+        'theme-green': [
+            { light: '#ccffda', mid: '#38e54d', glow: '#1db947' },
+            { light: '#dfffee', mid: '#00e676', glow: '#00a859' },
+            { light: '#f1f8e9', mid: '#76ff03', glow: '#4caf50' },
+            { light: '#e0f2f1', mid: '#64ffda', glow: '#00bfa5' }
+        ],
+        'theme-blue': [
+            { light: '#cceeff', mid: '#29b6f6', glow: '#0288d1' },
+            { light: '#e0f7fa', mid: '#00e5ff', glow: '#0097a7' },
+            { light: '#e3f2fd', mid: '#448aff', glow: '#1565c0' },
+            { light: '#e8eaf6', mid: '#536dfe', glow: '#283593' }
+        ],
+        'theme-yellow': [
+            { light: '#fff9c4', mid: '#ffca28', glow: '#f59e0b' },
+            { light: '#fff3e0', mid: '#ffa726', glow: '#ef6c00' },
+            { light: '#fffde7', mid: '#ffd740', glow: '#ff8f00' },
+            { light: '#fbe9e7', mid: '#ff7043', glow: '#d84315' }
+        ],
+        'theme-purple': [
+            { light: '#f3e5f5', mid: '#d05ce3', glow: '#9c27b0' },
+            { light: '#f9ebff', mid: '#ea80fc', glow: '#8e24aa' },
+            { light: '#fce4ec', mid: '#ff80ab', glow: '#c2185b' },
+            { light: '#ede7f6', mid: '#b388ff', glow: '#673ab7' }
+        ]
+    };
+
+    function getCurrentPalette(overrideTheme) {
+        const theme = overrideTheme || shuffledThemes[Math.min(Math.floor(currentQ / 3), 3)] || 'theme-green';
+        return themeSoulPalettes[theme] || themeSoulPalettes['theme-green'];
+    }
+
+    const originalQuestions = [
+        { q: "にぎやかなお<ruby>祭<rt>まつ</rt></ruby>りの<ruby>音<rt>おと</rt></ruby>が<ruby>聞<rt>き</rt></ruby>こえてきた！どうする？", a: "「<ruby>面白<rt>おもしろ</rt></ruby>そう！」と<ruby>人<rt>ひと</rt></ruby>が<ruby>集<rt>あつ</rt></ruby>まる<ruby>場所<rt>ばしょ</rt></ruby>へ<ruby>走<rt>はし</rt></ruby>っていく", b: "「<ruby>楽<rt>たの</rt></ruby>しそうだな」と<ruby>少<rt>すこ</rt></ruby>し<ruby>離<rt>はな</rt></ruby>れた<ruby>静<rt>しず</rt></ruby>かな<ruby>場所<rt>ばしょ</rt></ruby>からのんびり<ruby>眺<rt>なが</rt></ruby>める", typeA: "E", typeB: "I" },
+        { q: "<ruby>新<rt>あたら</rt></ruby>しい<ruby>妖怪<rt>ようかい</rt></ruby>や<ruby>仲間<rt>なかま</rt></ruby>に<ruby>出<rt>で</rt></ruby><ruby>会<rt>あ</rt></ruby>ったとき、どうする？", a: "<ruby>自分<rt>じぶん</rt></ruby>からどんどん<ruby>声<rt>こえ</rt></ruby>をかけて<ruby>仲良<rt>なかよ</rt></ruby>くなる", b: "<ruby>相手<rt>あいて</rt></ruby>から<ruby>話<rt>はな</rt></ruby>しかけてくれるのを<ruby>静<rt>しず</rt></ruby>かに<ruby>待<rt>ま</rt></ruby>つ", typeA: "E", typeB: "I" },
+        { q: "つかれたときや<ruby>落<rt>お</rt></ruby>ち<ruby>込<rt>こ</rt></ruby>んだとき、<ruby>元気<rt>げんき</rt></ruby>になる<ruby>方法<rt>ほうほう</rt></ruby>は？", a: "<ruby>友達<rt>ともだち</rt></ruby>とたくさんおしゃべりして<ruby>遊<rt>あそ</rt></ruby>ぶ", b: "<ruby>自分<rt>じぶん</rt></ruby>の<ruby>部屋<rt>へや</rt></ruby>にこもり、ひとりでゆっくり<ruby>過<rt>す</rt></ruby>ごす", typeA: "E", typeB: "I" },
+        { q: "<ruby>宝探<rt>たからさが</rt></ruby>しの<ruby>地図<rt>ちず</rt></ruby>を<ruby>手<rt>て</rt></ruby>に<ruby>入<rt>い</rt></ruby>れた！どっちを<ruby>信<rt>しん</rt></ruby>じる？", a: "<ruby>地図<rt>ちず</rt></ruby>にしっかり<ruby>書<rt>か</rt></ruby>かれている「<ruby>確<rt>たし</rt></ruby>かな<ruby>道<rt>みち</rt></ruby>」", b: "「なんとなくこっちが<ruby>怪<rt>あや</rt></ruby>しい！」という「<ruby>自分<rt>じぶん</rt></ruby>のカン」", typeA: "S", typeB: "N" },
+        { q: "<ruby>新<rt>あたら</rt></ruby>しい<ruby>妖術<rt>ようじゅつ</rt></ruby>を<ruby>覚<rt>おぼ</rt></ruby>えるとき、どっちが<ruby>得意<rt>とくい</rt></ruby>？", a: "<ruby>手本<rt>てほん</rt></ruby>をしっかり<ruby>見<rt>み</rt></ruby>ながら、<ruby>何度<rt>なんど</rt></ruby>も<ruby>体<rt>からだ</rt></ruby>を<ruby>動<rt>うご</rt></ruby>かして<ruby>覚<rt>おぼ</rt></ruby>える", b: "<ruby>全体<rt>ぜんたい</rt></ruby>のイメージをつかんで、<ruby>自分<rt>じぶん</rt></ruby>なりに<ruby>工夫<rt>くふう</rt></ruby>しながら<ruby>覚<rt>おぼ</rt></ruby>える", typeA: "S", typeB: "N" },
+        { q: "<ruby>空<rt>そら</rt></ruby>に<ruby>浮<rt>う</rt></ruby>かぶ<ruby>不思議<rt>ふしぎ</rt></ruby>な<ruby>雲<rt>くも</rt></ruby>を<ruby>見<rt>み</rt></ruby>つけた！どう<ruby>表現<rt>ひょうげん</rt></ruby>する？", a: "「<ruby>白<rt>しろ</rt></ruby>くてモコモコした<ruby>大<rt>おお</rt></ruby>きな<ruby>雲<rt>くも</rt></ruby>だな」とそのまま<ruby>見<rt>み</rt></ruby>る", b: "「<ruby>空<rt>そら</rt></ruby>を<ruby>飛<rt>と</rt></ruby>ぶドラゴンの<ruby>姿<rt>すがた</rt></ruby>に<ruby>見<rt>み</rt></ruby>える！」と<ruby>想像<rt>そうぞう</rt></ruby>をふくらませる", typeA: "S", typeB: "N" },
+        { q: "<ruby>友達同士<rt>ともだちどうし</rt></ruby>がケンカを<ruby>始<rt>はじ</rt></ruby>めちゃった。<ruby>仲直<rt>なかなお</rt></ruby>りさせるときどうする？", a: "どっちの<ruby>言<rt>い</rt></ruby>い<ruby>分<rt>ぶん</rt></ruby>が<ruby>正<rt>ただ</rt></ruby>しいか、<ruby>冷静<rt>れいせい</rt></ruby>に<ruby>白黒<rt>しろくろ</rt></ruby>をつける", b: "お<ruby>互<rt>たが</rt></ruby>いの<ruby>気持<rt>きも</rt></ruby>ちを<ruby>聞<rt>き</rt></ruby>いて、ふたりが<ruby>傷<rt>きず</rt></ruby>つかないようにまとめる", typeA: "T", typeB: "F" },
+        { q: "<ruby>何<rt>なに</rt></ruby>か<ruby>大事<rt>だいじ</rt></ruby>なことを<ruby>決<rt>き</rt></ruby>めるとき、<ruby>最後<rt>さいご</rt></ruby>の<ruby>決<rt>き</rt></ruby>め<ruby>手<rt>て</rt></ruby>になるのは？", a: "「どっちが<ruby>役<rt>やく</rt></ruby>に<ruby>立<rt>た</rt></ruby>つか、<ruby>得<rt>とく</rt></ruby>をするか」という<ruby>頭<rt>あたま</rt></ruby>の<ruby>判断<rt>はんだん</rt></ruby>", b: "「どっちが<ruby>好<rt>す</rt></ruby>きか、ワクワクするか」という<ruby>心<rt>こころ</rt></ruby>の<ruby>気持<rt>きも</rt></ruby>ち", typeA: "T", typeB: "F" },
+        { q: "<ruby>仲間<rt>なかま</rt></ruby>が<ruby>失敗<rt>しっぱい</rt></ruby>しちゃった！<ruby>最初<rt>さいしょ</rt></ruby>にどんな<ruby>声<rt>こえ</rt></ruby>をかける？", a: "「<ruby>次<rt>つぎ</rt></ruby>はこう<ruby>直<rt>なお</rt></ruby>せばうまくいくよ」とコツを<ruby>教<rt>おし</rt></ruby>えてあげる", b: "「<ruby>大丈夫<rt>だいじょうぶ</rt></ruby>？<ruby>気<rt>き</rt></ruby>にしないでね」とまずは<ruby>優<rt>やさ</rt></ruby>しく<ruby>励<rt>はげ</rt></ruby>ます", typeA: "T", typeB: "F" },
+        { q: "<ruby>明日<rt>あした</rt></ruby>は<ruby>楽<rt>たの</rt></ruby>しみにしていたおでかけの<ruby>日<rt>ひ</rt></ruby>！<ruby>準備<rt>じゅんび</rt></ruby>はどうする？", a: "<ruby>前<rt>まえ</rt></ruby>の<ruby>日<rt>ひ</rt></ruby>のうちに、<ruby>持<rt>も</rt></ruby>ち<ruby>物<rt>もの</rt></ruby>も<ruby>行<rt>い</rt></ruby>く<ruby>順番<rt>じゅんばん</rt></ruby>もバッチリ<ruby>決<rt>き</rt></ruby>めておく", b: "<ruby>特<rt>とく</rt></ruby>に<ruby>何<rt>なに</rt></ruby>も<ruby>決<rt>き</rt></ruby>めず、その<ruby>日<rt>ひ</rt></ruby>の<ruby>気分<rt>きぶん</rt></ruby>に<ruby>合<rt>あ</rt></ruby>わせてのんびり<ruby>出<rt>で</rt></ruby>かける", typeA: "J", typeB: "P" },
+        { q: "やるべきことや<ruby>宿題<rt>しゅくだい</rt></ruby>があるとき、どう<ruby>進<rt>すす</rt></ruby>める？", a: "<ruby>先<rt>さき</rt></ruby>にパパッと<ruby>終<rt>お</rt></ruby>わらせて、すっきりしてから<ruby>遊<rt>あそ</rt></ruby>ぶ", b: "ギリギリまで<ruby>楽<rt>たの</rt></ruby>しく<ruby>遊<rt>あそ</rt></ruby>んで、<ruby>最後<rt>さいご</rt></ruby>に<ruby>一気<rt>いっき</rt></ruby>に<ruby>集中<rt>しゅうちゅう</rt></ruby>して<ruby>終<rt>お</rt></ruby>わらせる", typeA: "J", typeB: "P" },
+        { q: "<ruby>予定<rt>よてい</rt></ruby>していた<ruby>計画<rt>けいかく</rt></ruby>が<ruby>急<rt>きゅう</rt></ruby>に<ruby>変<rt>か</rt></ruby>わっちゃった！どう<ruby>感<rt>かん</rt></ruby>じる？", a: "「<ruby>予定<rt>よてい</rt></ruby><ruby>通<rt>どお</rt></ruby>りにいかない…」とモヤモヤする", b: "「まあいっか！<ruby>別<rt>べつ</rt></ruby>のことして<ruby>遊<rt>あそ</rt></ruby>ぼう」と<ruby>気楽<rt>きらく</rt></ruby>に<ruby>楽<rt>たの</rt></ruby>しむ", typeA: "J", typeB: "P" }
+    ];
+
+    const resultsData = {
+        "INTJ": { name: "<ruby>鞍馬天狗<rt>くらまてんぐ</rt></ruby>", img: "intj.png", theme: "theme-purple", desc: "<ruby>孤高<rt>ここう</rt></ruby>の<ruby>戦略家<rt>せんりゃくか</rt></ruby>。<ruby>高<rt>たか</rt></ruby>い<ruby>視点<rt>してん</rt></ruby>から<ruby>物事<rt>ものごと</rt></ruby>の<ruby>理<rt>ことわり</rt></ruby>を<ruby>見抜<rt>みぬ</rt></ruby>く<ruby>完璧主義者<rt>かんぺきしゅぎしゃ</rt></ruby>。<ruby>無駄<rt>むだ</rt></ruby>な<ruby>交流<rt>こうりゅう</rt></ruby>を<ruby>嫌<rt>いや</rt></ruby>い、<ruby>自<rt>みずか</rt></ruby>らの<ruby>理想実現<rt>りそうじつげん</rt></ruby>のために<ruby>何十年<rt>なんじゅうねん</rt></ruby>も<ruby>修行<rt>しゅぎょう</rt></ruby>を<ruby>重<rt>かさ</rt></ruby>ねるような<ruby>執念<rt>しゅうねん</rt></ruby>を<ruby>持<rt>も</rt></ruby>つ。<ruby>他人<rt>たにん</rt></ruby>の<ruby>感情<rt>かんじょう</rt></ruby>に<ruby>疎<rt>うと</rt></ruby>く、<ruby>正論<rt>せいろん</rt></ruby>で<ruby>相手<rt>あいて</rt></ruby>を<ruby>黙<rt>だま</rt></ruby>らせてしまう「<ruby>天狗<rt>てんぐ</rt></ruby>の<ruby>鼻<rt>はな</rt></ruby>」を<ruby>折<rt>お</rt></ruby>りがちな<ruby>点<rt>てん</rt></ruby>には<ruby>注意<rt>ちゅうい</rt></ruby>。", lore: "<ruby>京都<rt>きょうと</rt></ruby>の<ruby>鞍馬山<rt>くらまやま</rt></ruby>に<ruby>棲<rt>す</rt></ruby>み、<ruby>高<rt>たか</rt></ruby>い<ruby>知恵<rt>ちえ</rt></ruby>と<ruby>神通力<rt>じんつうりき</rt></ruby>を<ruby>操<rt>あやつ</rt></ruby>る<ruby>天狗<rt>てんぐ</rt></ruby>たちの<ruby>総帥<rt>そうすい</rt></ruby>。<br><ruby>若<rt>わか</rt></ruby>き<ruby>日<rt>ひ</rt></ruby>の<ruby>源義経<rt>みなもとのよしつね</rt></ruby>（<ruby>牛若丸<rt>うしわかまる</rt></ruby>）に<ruby>剣術<rt>けんじゅつ</rt></ruby>や<ruby>兵法<rt>へいほう</rt></ruby>を<ruby>授<rt>さず</rt></ruby>けた<ruby>師匠<rt>ししょう</rt></ruby>としても<ruby>語<rt>かた</rt></ruby>り<ruby>継<rt>つ</rt></ruby>がれる。<br><ruby>手<rt>て</rt></ruby>に<ruby>持<rt>も</rt></ruby>つ<ruby>羽団扇<rt>はうちわ</rt></ruby>は、ひと<ruby>振<rt>ふ</rt></ruby>りするだけで<ruby>凄<rt>すさ</rt></ruby>まじい<ruby>大風<rt>おおかぜ</rt></ruby>を<ruby>巻<rt>ま</rt></ruby>き<ruby>起<rt>お</rt></ruby>こす。" },
+        "INTP": { name: "<ruby>白澤<rt>はくたく</rt></ruby>", img: "intp.png", theme: "theme-purple", desc: "<ruby>万物<rt>ばんぶつ</rt></ruby>に<ruby>通<rt>つう</rt></ruby>じた<ruby>研究者<rt>けんきゅうしゃ</rt></ruby>。<ruby>知識<rt>ちしき</rt></ruby>そのものが<ruby>主食<rt>しゅしょく</rt></ruby>。<ruby>客観的<rt>きゃっかんてき</rt></ruby>で<ruby>分析的<rt>ぶんせきてき</rt></ruby>。<ruby>世俗<rt>せぞく</rt></ruby>の<ruby>権力<rt>けんりょく</rt></ruby>には<ruby>興味<rt>きょうみ</rt></ruby>がなく、<ruby>真理<rt>しんり</rt></ruby>の<ruby>探究<rt>たんきゅう</rt></ruby>に<ruby>没頭<rt>ぼっとう</rt></ruby>する。<ruby>少<rt>すこ</rt></ruby>し<ruby>皮肉屋<rt>ひにくや</rt></ruby>で、<ruby>知識<rt>ちしき</rt></ruby>をひけらかす<ruby>癖<rt>くせ</rt></ruby>がある。<ruby>思考<rt>しこう</rt></ruby>に<ruby>耽<rt>ふけ</rt></ruby>りすぎて、<ruby>現実世界<rt>げんじつせかい</rt></ruby>の「<ruby>常識<rt>じょうしき</rt></ruby>」や「<ruby>生活感<rt>せいかつかん</rt></ruby>」をどこかに<ruby>置<rt>お</rt></ruby>き<ruby>忘<rt>わす</rt></ruby>れてくる。", lore: "<ruby>万物<rt>ばんぶつ</rt></ruby>の<ruby>理<rt>ことわり</rt></ruby>を<ruby>知<rt>し</rt></ruby>り<ruby>尽<rt>つ</rt></ruby>くし、<ruby>徳<rt>とく</rt></ruby>の<ruby>高<rt>たか</rt></ruby>い<ruby>王<rt>おう</rt></ruby>が<ruby>現<rt>あらわ</rt></ruby>れたときにだけ<ruby>姿<rt>すがた</rt></ruby>を<ruby>見<rt>み</rt></ruby>せる<ruby>聖<rt>せい</rt></ruby>なる<ruby>獣<rt>けもの</rt></ruby>。<br><ruby>体中<rt>からだじゅう</rt></ruby>にいくつもの<ruby>目<rt>め</rt></ruby>を<ruby>持<rt>も</rt></ruby>ち、この<ruby>世<rt>よ</rt></ruby>に<ruby>存在<rt>そんざい</rt></ruby>する<ruby>一万<rt>いちまん</rt></ruby>を<ruby>超<rt>こ</rt></ruby>える<ruby>妖怪<rt>ようかい</rt></ruby>の<ruby>正体<rt>しょうたい</rt></ruby>を<ruby>見通<rt>みとお</rt></ruby>す。<br>その<ruby>姿<rt>すがた</rt></ruby>を<ruby>描<rt>えが</rt></ruby>いた<ruby>絵<rt>え</rt></ruby>は、<ruby>病<rt>やまい</rt></ruby>や<ruby>災<rt>わざわ</rt></ruby>いを<ruby>退<rt>しりぞ</rt></ruby>ける<ruby>強力<rt>きょうりょく</rt></ruby>なお<ruby>守<rt>まも</rt></ruby>りとして<ruby>古<rt>ふる</rt></ruby>くから<ruby>重宝<rt>ちょうほう</rt></ruby>された。" },
+        "ENTJ": { name: "<ruby>九尾<rt>きゅうび</rt></ruby>の<ruby>狐<rt>きつね</rt></ruby>", img: "entj.png", theme: "theme-purple", desc: "<ruby>圧倒的<rt>あっとうてき</rt></ruby>な<ruby>統率者<rt>とうそつしゃ</rt></ruby>。<ruby>強大<rt>きょうだい</rt></ruby>な<ruby>霊力<rt>れいりょく</rt></ruby>と<ruby>知略<rt>ちりゃく</rt></ruby>を<ruby>駆使<rt>くし</rt></ruby>し、<ruby>望<rt>のぞ</rt></ruby>む<ruby>未来<rt>みらい</rt></ruby>を<ruby>自<rt>みずか</rt></ruby>らの<ruby>手<rt>て</rt></ruby>で<ruby>掴<rt>つか</rt></ruby>み<ruby>取<rt>と</rt></ruby>る。<ruby>意志<rt>いし</rt></ruby>が<ruby>強<rt>つよ</rt></ruby>く、<ruby>効率<rt>こうりつ</rt></ruby>を<ruby>最大化<rt>さいだいか</rt></ruby>して<ruby>集団<rt>しゅうだん</rt></ruby>を<ruby>導<rt>みちび</rt></ruby>く。<ruby>カリスマ性<rt>せい</rt></ruby>があるが、その<ruby>目<rt>め</rt></ruby>は<ruby>常<rt>つね</rt></ruby>に「<ruby>次<rt>つぎ</rt></ruby>なる<ruby>獲物<rt>えもの</rt></ruby>」を<ruby>見定<rt>みさだ</rt></ruby>めている。<ruby>目標<rt>もくひょう</rt></ruby>のためなら<ruby>多少<rt>たしょう</rt></ruby>の<ruby>犠牲<rt>ぎせい</rt></ruby>は<ruby>厭<rt>いと</rt></ruby>わない<ruby>冷徹<rt>れいてつ</rt></ruby>さがあり、<ruby>周囲<rt>しゅうい</rt></ruby>を<ruby>恐怖<rt>きょうふ</rt></ruby>させる。", lore: "<ruby>千年<rt>せんねん</rt></ruby><ruby>以上<rt>いじょう</rt></ruby>の<ruby>修行<rt>しゅぎょう</rt></ruby>を<ruby>経<rt>へ</rt></ruby>て<ruby>強大<rt>きょうだい</rt></ruby>な<ruby>霊力<rt>れいりょく</rt></ruby>を<ruby>得<rt>え</rt></ruby>た、<ruby>九本<rt>きゅうほん</rt></ruby>の<ruby>尾<rt>お</rt></ruby>を<ruby>持<rt>も</rt></ruby>つ<ruby>白銀<rt>はくぎん</rt></ruby>の<ruby>妖狐<rt>ようこ</rt></ruby>。<br>あらゆる<ruby>姿<rt>すがた</rt></ruby>に<ruby>化<rt>ば</rt></ruby>けることができ、<ruby>国<rt>くに</rt></ruby>を<ruby>動<rt>うご</rt></ruby>かすほどの<ruby>知略<rt>ちりゃく</rt></ruby>と<ruby>妖術<rt>ようじゅつ</rt></ruby>を<ruby>誇<rt>ほこ</rt></ruby>る。<br><ruby>恐<rt>おそ</rt></ruby>るべき<ruby>力<rt>ちから</rt></ruby>を<ruby>持<rt>も</rt></ruby>つ<ruby>一方<rt>いっぽう</rt></ruby>、<ruby>泰平<rt>たいへい</rt></ruby>の<ruby>世<rt>よ</rt></ruby>に<ruby>現<rt>あらわ</rt></ruby>れる<ruby>神聖<rt>しんせい</rt></ruby>な<ruby>瑞獣<rt>ずいじゅう</rt></ruby>としての一面も持つ。" },
+        "ENTP": { name: "<ruby>化<rt>ば</rt></ruby>け<ruby>狸<rt>だぬき</rt></ruby>", img: "entp.png", theme: "theme-purple", desc: "<ruby>悪知恵<rt>わるぢえ</rt></ruby>の<ruby>働<rt>はたら</rt></ruby>く<ruby>策士<rt>さくし</rt></ruby>。<ruby>常識<rt>じょうしき</rt></ruby>を<ruby>疑<rt>うたが</rt></ruby>い、<ruby>周囲<rt>しゅうい</rt></ruby>を<ruby>化<rt>ばかす</rt></ruby>しては<ruby>変化<rt>へんか</rt></ruby>を<ruby>楽<rt>たの</rt></ruby>しむ。<ruby>好奇心旺盛<rt>こうきしんおうせい</rt></ruby>で、<ruby>議論<rt>ぎろん</rt></ruby>や<ruby>知的<rt>ちてき</rt></ruby>な<ruby>駆<rt>か</rt></ruby>け<ruby>引<rt>ひ</rt></ruby>きが<ruby>大好<rt>だいす</rt></ruby>き。<ruby>退屈<rt>たいくつ</rt></ruby>を<ruby>死<rt>し</rt></ruby>ぬほど<ruby>嫌<rt>いや</rt></ruby>い、あえて<ruby>混沌<rt>こんとん</rt></ruby>を<ruby>作<rt>つく</rt></ruby>り<ruby>出<rt>だ</rt></ruby>すトラブルメーカー。<ruby>計画<rt>けいかく</rt></ruby>を<ruby>最後<rt>さいご</rt></ruby>までやり<ruby>遂<rt>と</rt></ruby>げるのが<ruby>苦手<rt>にがて</rt></ruby>で、<ruby>面白<rt>おもしろ</rt></ruby>くなくなると<ruby>途中<rt>とちゅう</rt></ruby>でドロンと<ruby>消<rt>き</rt></ruby>える。", lore: "<ruby>頭<rt>あたま</rt></ruby>に<ruby>木<rt>き</rt></ruby>の<ruby>葉<rt>は</rt></ruby>を<ruby>乗<rt>の</rt></ruby>せてドロンと<ruby>化<rt>ば</rt></ruby>け、<ruby>人間<rt>にんげん</rt></ruby>をあっと<ruby>驚<rt>おどろ</rt></ruby>かせるのが<ruby>大好<rt>だいす</rt></ruby>きな<ruby>妖怪<rt>ようかい</rt></ruby>。<br><ruby>大<rt>おお</rt></ruby>きな<ruby>腹<rt>はら</rt></ruby>をポンポコと<ruby>叩<rt>たた</rt></ruby>いて<ruby>音<rt>おと</rt></ruby>を<ruby>響<rt>ひび</rt></ruby>かせ、<ruby>仲間<rt>なかま</rt></ruby>たちと<ruby>愉快<rt>ゆかい</rt></ruby>な<ruby>宴<rt>うたげ</rt></ruby>を<ruby>開<rt>ひら</rt></ruby>く。<br><ruby>日本各地<rt>にほんかくち</rt></ruby>に<ruby>名物狸<rt>めいぶつだぬき</rt></ruby>の<ruby>伝説<rt>でんせつ</rt></ruby>が<ruby>残<rt>のこ</rt></ruby>っており、その<ruby>愛嬌<rt>あいきょう</rt></ruby>と<ruby>悪知恵<rt>わるぢえ</rt></ruby>で<ruby>古<rt>ふる</rt></ruby>くから<ruby>親<rt>した</rt></ruby>しまれてきた。" },
+        "INFJ": { name: "<ruby>獏<rt>ばく</rt></ruby>", img: "infj.png", theme: "theme-green", desc: "<ruby>静<rt>しず</rt></ruby>かなる<ruby>予言者<rt>よげんしゃ</rt></ruby>。<ruby>人<rt>ひと</rt></ruby>の<ruby>深層心理<rt>しんそうしんり</rt></ruby>や<ruby>夢<rt>ゆめ</rt></ruby>を<ruby>食<rt>く</rt></ruby>らい、その<ruby>本質<rt>ほんしつ</rt></ruby>を<ruby>見抜<rt>みぬ</rt></ruby>く。<ruby>強<rt>つよ</rt></ruby>い<ruby>信念<rt>しんねん</rt></ruby>を<ruby>持<rt>も</rt></ruby>ち、<ruby>人知<rt>ひとし</rt></ruby>れず<ruby>平和<rt>へいわ</rt></ruby>や<ruby>理想<rt>りそう</rt></ruby>を<ruby>願<rt>ねが</rt></ruby>う。<ruby>神秘的<rt>しんぴてき</rt></ruby>で、<ruby>自分<rt>じぶん</rt></ruby>でも<ruby>気<rt>き</rt></ruby>づかないうちに<ruby>他人<rt>たにん</rt></ruby>の<ruby>運命<rt>うんめい</rt></ruby>に<ruby>影響<rt>えいきょう</rt></ruby>を<ruby>与<rt>あた</rt></ruby>える。<ruby>他人<rt>たにん</rt></ruby>の<ruby>悩<rt>なや</rt></ruby>みを<ruby>受<rt>う</rt></ruby>け<ruby>止<rt>と</rt></ruby>めすぎて、<ruby>自分<rt>じぶん</rt></ruby>が「<ruby>悪夢<rt>あくむ</rt></ruby>」に<ruby>飲<rt>の</rt></ruby>まれてしまいがち。", lore: "<ruby>人<rt>ひと</rt></ruby>が<ruby>眠<rt>ねむ</rt></ruby>っている<ruby>間<rt>あいだ</rt></ruby>に<ruby>見<rt>み</rt></ruby>る「<ruby>恐<rt>おそ</rt></ruby>ろしい<ruby>悪夢<rt>あくむ</rt></ruby>」を<ruby>喰<rt>く</rt></ruby>らう、<ruby>心優<rt>こころやさ</rt></ruby>しき<ruby>霊獣<rt>れいじゅう</rt></ruby>。<br><ruby>熊<rt>くま</rt></ruby>の<ruby>体<rt>からだ</rt></ruby>、<ruby>象<rt>ぞう</rt></ruby>の<ruby>鼻<rt>はな</rt></ruby>、<ruby>サイ<rt>さい</rt></ruby>の<ruby>目<rt>め</rt></ruby>、<ruby>虎<rt>とら</rt></ruby>の<ruby>足<rt>あし</rt></ruby>を<ruby>備<rt>そな</rt></ruby>えた、<ruby>不思議<rt>ふしぎ</rt></ruby>で<ruby>神秘的<rt>しんぴてき</rt></ruby>な<ruby>姿<rt>すがた</rt></ruby>をしている。<br><ruby>枕<rt>まくら</rt></ruby>の<ruby>下<rt>した</rt></ruby>に<ruby>獏<rt>ばく</rt></ruby>の<ruby>絵<rt>え</rt></ruby>を<ruby>敷<rt>し</rt></ruby>いて<ruby>眠<rt>ねむ</rt></ruby>れば、<ruby>悪夢<rt>あくむ</rt></ruby>を<ruby>退<rt>しりぞ</rt></ruby>け<ruby>良<rt>よ</rt></ruby>き<ruby>夢<rt>ゆめ</rt></ruby>が<ruby>見<rt>み</rt></ruby>られると<ruby>信<rt>しん</rt></ruby>じられてきた。" },
+        "INFP": { name: "<ruby>座敷童子<rt>ざしきわらし</rt></ruby>", img: "infp.png", theme: "theme-green", desc: "<ruby>純粋<rt>じゅんすい</rt></ruby>な<ruby>理想家<rt>りそうか</rt></ruby>。<ruby>静<rt>しず</rt></ruby>かな<ruby>部屋<rt>へや</rt></ruby>の<ruby>隅<rt>すみ</rt></ruby>で、<ruby>大切<rt>たいせつ</rt></ruby>な<ruby>人<rt>ひと</rt></ruby>の<ruby>幸<rt>しあわ</rt></ruby>せをひっそりと<ruby>願<rt>ねが</rt></ruby>う。<ruby>感受性<rt>かんじゅせい</rt></ruby>が<ruby>豊<rt>ゆた</rt></ruby>かで、<ruby>独自<rt>どくじ</rt></ruby>の<ruby>美<rt>うつく</rt></ruby>しい<ruby>世界観<rt>せかいかん</rt></ruby>を<ruby>持<rt>も</rt></ruby>っている。<ruby>慈愛<rt>じあい</rt></ruby>に<ruby>満<rt>み</rt></ruby>ちているが、<ruby>土足<rt>どそく</rt></ruby>で<ruby>心<rt>こころ</rt></ruby>に<ruby>踏<rt>ふ</rt></ruby>み<ruby>込<rt>こ</rt></ruby>まれると<ruby>静<rt>しず</rt></ruby>かに<ruby>去<rt>さ</rt></ruby>っていく。<ruby>理想<rt>りそう</rt></ruby>と<ruby>現実<rt>げんじつ</rt></ruby>のギャップに<ruby>傷<rt>きず</rt></ruby>つきやすく、<ruby>一度<rt>いちど</rt></ruby><ruby>落<rt>お</rt></ruby>ち<ruby>込<rt>こ</rt></ruby>むと<ruby>屋根裏<rt>やねうら</rt></ruby>から<ruby>出<rt>で</rt></ruby>てこない。", lore: "<ruby>古<rt>ふる</rt></ruby>い<ruby>屋敷<rt>やしき</rt></ruby>や<ruby>奥座敷<rt>おくざしき</rt></ruby>に<ruby>棲<rt>す</rt></ruby>みつき、その<ruby>家<rt>いえ</rt></ruby>に<ruby>大<rt>おお</rt></ruby>きな<ruby>福<rt>ふく</rt></ruby>をもたらす<ruby>子供<rt>こども</rt></ruby>の<ruby>姿<rt>すがた</rt></ruby>の<ruby>守<rt>まも</rt></ruby>り<ruby>神<rt>がみ</rt></ruby>。<br><ruby>夜中<rt>よなか</rt></ruby>にパタパタと<ruby>走<rt>はし</rt></ruby>り<ruby>回<rt>まわ</rt></ruby>っていたずらをするが、<ruby>姿<rt>すがた</rt></ruby>を<ruby>見<rt>み</rt></ruby>た<ruby>者<rt>もの</rt></ruby>には<ruby>幸運<rt>こううん</rt></ruby>が<ruby>訪<rt>おとず</rt></ruby>れるという。<br><ruby>童子<rt>わらし</rt></ruby>に<ruby>気<rt>き</rt></ruby>に<ruby>入<rt>い</rt></ruby>られた<ruby>家<rt>いえ</rt></ruby>は、いつまでも<ruby>豊<rt>ゆた</rt></ruby>かに<ruby>栄<rt>さか</rt></ruby>え<ruby>続<rt>つづ</rt></ruby>けると<ruby>言<rt>い</rt></ruby>い<ruby>伝<rt>つた</rt></ruby>えられている。" },
+        "ENFJ": { name: "<ruby>玉藻前<rt>たまものまえ</rt></ruby>", img: "enfj.png", theme: "theme-green", desc: "<ruby>魅惑<rt>みわく</rt></ruby>の<ruby>先導者<rt>せんどうしゃ</rt></ruby>。<ruby>誰<rt>だれ</rt></ruby>もが<ruby>目<rt>め</rt></ruby>を<ruby>奪<rt>うば</rt></ruby>われる<ruby>美<rt>うつく</rt></ruby>しさと<ruby>優<rt>やさ</rt></ruby>しさで、<ruby>周囲<rt>しゅうい</rt></ruby>の<ruby>心<rt>こころ</rt></ruby>を<ruby>一<rt>ひと</rt></ruby>つにする。<ruby>共感能力<rt>きょうかんのうりょく</rt></ruby>が<ruby>高<rt>たか</rt></ruby>く、<ruby>他人<rt>たにん</rt></ruby>の<ruby>成長<rt>せいちょう</rt></ruby>や<ruby>幸<rt>しあわ</rt></ruby>せを<ruby>自分<rt>じぶん</rt></ruby>のことのように<ruby>喜<rt>よろこ</rt></ruby>ぶ。<ruby>強<rt>つよ</rt></ruby>い<ruby>信念<rt>しんねん</rt></ruby>で<ruby>皆<rt>みな</rt></ruby>を<ruby>導<rt>みちび</rt></ruby>くが、その<ruby>情熱<rt>じょうねつ</rt></ruby>は<ruby>時<rt>とき</rt></ruby>に<ruby>毒<rt>どく</rt></ruby>にもなる。<ruby>他人<rt>たにん</rt></ruby>に<ruby>好<rt>す</rt></ruby>かれたい、<ruby>認<rt>みと</rt></ruby>められたいという<ruby>欲求<rt>よっきゅう</rt></ruby>が<ruby>強<rt>つよ</rt></ruby>く、<ruby>自分<rt>じぶん</rt></ruby>を<ruby>追<rt>お</rt></ruby>い<ruby>詰<rt>つ</rt></ruby>めすぎる。", lore: "<ruby>平安<rt>へいあん</rt></ruby>の<ruby>世<rt>よ</rt></ruby>、<ruby>並外<rt>なみはず</rt></ruby>れた<ruby>美貌<rt>びぼう</rt></ruby>とあらゆる<ruby>学問<rt>がくもん</rt></ruby>に<ruby>通<rt>つう</rt></ruby>じた<ruby>才知<rt>さいち</rt></ruby>で<ruby>人々<rt>ひとびと</rt></ruby>を<ruby>魅了<rt>みりょう</rt></ruby>した<ruby>絶世<rt>ぜっせい</rt></ruby>の<ruby>美女<rt>びじょ</rt></ruby>。<br>その<ruby>正体<rt>しょうたい</rt></ruby>は<ruby>強大<rt>きょうだい</rt></ruby>な<ruby>霊力<rt>れいりょく</rt></ruby>を<ruby>持<rt>も</rt></ruby>つ<ruby>妖狐<rt>ようこ</rt></ruby>であり、<ruby>宮廷中<rt>きゅうていちゅう</rt></ruby>の<ruby>人々<rt>ひとびと</rt></ruby>を<ruby>虜<rt>とりこ</rt></ruby>にして<ruby>国<rt>くに</rt></ruby>を<ruby>揺<rt>ゆ</rt></ruby>るがした。<br><ruby>妖<rt>あや</rt></ruby>しくも<ruby>人<rt>ひと</rt></ruby>を<ruby>惹<rt>ひ</rt></ruby>きつけてやまない、<ruby>伝説的<rt>でんせつてき</rt></ruby>な<ruby>美<rt>うつく</rt></ruby>しさとカリスマ<ruby>性<rt>せい</rt></ruby>を<ruby>兼<rt>か</rt></ruby>ね<ruby>備<rt>そな</rt></ruby>える。" },
+        "ENFP": { name: "<ruby>河童<rt>かっぱ</rt></ruby>", img: "enfp.png", theme: "theme-green", desc: "<ruby>自由奔放<rt>じゆうほんぽう</rt></ruby>な<ruby>冒険家<rt>ぼうけんか</rt></ruby>。<ruby>好奇心<rt>こうきしん</rt></ruby>の<ruby>赴<rt>おもむ</rt></ruby>くままに<ruby>川<rt>かわ</rt></ruby>を<ruby>渡<rt>わた</rt></ruby>り、<ruby>人間<rt>にんげん</rt></ruby>とも<ruby>妖怪<rt>ようかい</rt></ruby>とも<ruby>仲良<rt>なかよ</rt></ruby>くなる。<ruby>楽観的<rt>らっかんてき</rt></ruby>でエネルギッシュ。<ruby>新<rt>あたら</rt></ruby>しいアイデアを<ruby>思<rt>おも</rt></ruby>い<ruby>つ</rt></ruby>くのが<ruby>得意<rt>とくい</rt></ruby>で、<ruby>周囲<rt>しゅうい</rt></ruby>に<ruby>笑顔<rt>えがお</rt></ruby>と<ruby>活気<rt>かっき</rt></ruby>をもたらす。<ruby>集中力<rt>しゅうちゅうりょく</rt></ruby>が<ruby>散漫<rt>さんまん</rt></ruby>で、<ruby>皿<rt>さら</rt></ruby>の<ruby>上<rt>うえ</rt></ruby>の<ruby>水<rt>みず</rt></ruby>（エネルギー）が<ruby>切<rt>き</rt></ruby>れると、<ruby>一気<rt>いっき</rt></ruby>に<ruby>無気力<rt>むきりょく</rt></ruby>になる。", lore: "<ruby>川<rt>かわ</rt></ruby>や<ruby>池<rt>いけ</rt></ruby>に<ruby>棲<rt>す</rt></ruby>み、<ruby>水泳<rt>すいえい</rt></ruby>と<ruby>相撲<rt>すもう</rt></ruby>なら<ruby>誰<rt>だれ</rt></ruby>にも<ruby>負<rt>ま</rt></ruby>けない<ruby>日本<rt>にほん</rt></ruby>を<ruby>代表<rt>だいひょう</rt></ruby>するおなじみの<ruby>妖怪<rt>ようかい</rt></ruby>。<br><ruby>頭<rt>あたま</rt></ruby>のてっぺんにある<ruby>皿<rt>さら</rt></ruby>の<ruby>水<rt>みず</rt></ruby>が<ruby>乾<rt>かわ</rt></ruby>いてしまうと、<ruby>自慢<rt>じまん</rt></ruby>の<ruby>怪力<rt>かいりき</rt></ruby>が<ruby>抜<rt>ぬ</rt></ruby>けて<ruby>動<rt>うご</rt></ruby>けなくなる。<br>いたずら<ruby>好<rt>ず</rt></ruby>きだが<ruby>義理堅<rt>ぎりがた</rt></ruby>く、<ruby>恩<rt>おん</rt></ruby>を<ruby>受<rt>う</rt></ruby>けると<ruby>魚<rt>さかな</rt></ruby>を<ruby>届<rt>とど</rt></ruby>けたり<ruby>秘伝<rt>ひでん</rt></ruby>の<ruby>薬<rt>くすり</rt></ruby>を<ruby>授<rt>さず</rt></ruby>けたりもする。" },
+        "ISTJ": { name: "<ruby>塗<rt>ぬ</rt></ruby>り<ruby>壁<rt>かべ</rt></ruby>", img: "istj.png", theme: "theme-blue", desc: "<ruby>実直<rt>じっちょく</rt></ruby>な<ruby>守護者<rt>しゅごしゃ</rt></ruby>。<ruby>一度<rt>いちど</rt></ruby>「こう」と<ruby>決<rt>き</rt></ruby>めたら、<ruby>何<rt>なに</rt></ruby>があっても<ruby>動<rt>うご</rt></ruby>かない<ruby>頑固<rt>がんこ</rt></ruby>さと<ruby>責任感<rt>せきにんかん</rt></ruby>を<ruby>持<rt>も</rt></ruby>つ。<ruby>伝統<rt>でんとう</rt></ruby>や<ruby>規律<rt>きりつ</rt></ruby>を<ruby>重<rt>おも</rt></ruby>んじ、<ruby>確実<rt>かくじつ</rt></ruby>・<ruby>丁寧<rt>ていねい</rt></ruby>に<ruby>仕事<rt>しごと</rt></ruby>をこなす。<ruby>派手<rt>はで</rt></ruby>さはないが、<ruby>集団<rt>しゅうだん</rt></ruby>の<ruby>中<rt>なか</rt></ruby>で<ruby>最<rt>もっと</rt></ruby>も<ruby>信頼<rt>しんらい</rt></ruby>される<ruby>基盤<rt>きばん</rt></ruby>。<ruby>変化<rt>へんか</rt></ruby>に<ruby>弱<rt>よわ</rt></ruby>く、<ruby>想定外<rt>そうていがい</rt></ruby>の<ruby>事態<rt>じたい</rt></ruby>が<ruby>起<rt>お</rt></ruby>きると「<ruby>通<rt>とお</rt></ruby>せんぼ」をしたまま<ruby>固<rt>かた</rt></ruby>まってしまう。", lore: "<ruby>夜道<rt>よみち</rt></ruby>を<ruby>歩<rt>ある</rt></ruby>いていると<ruby>突然<rt>とつぜん</rt></ruby><ruby>目<rt>め</rt></ruby>の<ruby>前<rt>まえ</rt></ruby>に<ruby>立<rt>た</rt></ruby>ちはだかり、<ruby>行<rt>ゆ</rt></ruby>く<ruby>手<rt>て</rt></ruby>をふさぐ<ruby>巨大<rt>きょだい</rt></ruby>な<ruby>壁<rt>かべ</rt></ruby>の<ruby>妖怪<rt>ようかい</rt></ruby>。<br><ruby>左右<rt>さゆう</rt></ruby>に<ruby>回<rt>まわ</rt></ruby>り<ruby>込<rt>こ</rt></ruby>もうとしても<ruby>壁<rt>かべ</rt></ruby>がどこまでも<ruby>伸<rt>の</rt></ruby>び、<ruby>決<rt>けっ</rt></ruby>して<ruby>先<rt>さき</rt></ruby>へ<ruby>進<rt>すす</rt></ruby>ませてはくれない。<br><ruby>足元<rt>あしもと</rt></ruby>を<ruby>棒<rt>ぼう</rt></ruby>でそっと<ruby>払<rt>はら</rt></ruby>うと<ruby>消<rt>き</rt></ruby>えるといい、<ruby>危険<rt>きけん</rt></ruby>な<ruby>夜道<rt>よみち</rt></ruby>から<ruby>人<rt>ひと</rt></ruby>を<ruby>守<rt>まも</rt></ruby>っているとも<ruby>伝<rt>つた</rt></ruby>わる。" },
+        "ISFJ": { name: "<ruby>雪女<rt>ゆきおんな</rt></ruby>", img: "isfj.png", theme: "theme-blue", desc: "<ruby>献身的<rt>けんしんてき</rt></ruby>な<ruby>守<rt>まも</rt></ruby>り<ruby>人<rt>びと</rt></ruby>。<ruby>静寂<rt>せいじゃく</rt></ruby>の<ruby>中<rt>なか</rt></ruby>で<ruby>大切<rt>たいせつ</rt></ruby>な<ruby>絆<rt>きずな</rt></ruby>や<ruby>思<rt>おも</rt></ruby>い<ruby>出<rt>で</rt></ruby>を<ruby>氷<rt>こおり</rt></ruby>のように<ruby>凍<rt>こお</rt></ruby>らせて、<ruby>永遠<rt>えいえん</rt></ruby>に<ruby>守<rt>まも</rt></ruby>り<ruby>抜<rt>ぬ</rt></ruby>く。<ruby>控<rt>ひか</rt></ruby>えめで<ruby>礼儀正<rt>れいぎただ</rt></ruby>しく、<ruby>他人<rt>たにん</rt></ruby>のニーズを<ruby>察知<rt>さっち</rt></ruby>するのが<ruby>得意<rt>とくい</rt></ruby>。<ruby>一度<rt>いちど</rt></ruby><ruby>許<rt>ゆる</rt></ruby>した<ruby>相手<rt>あいて</rt></ruby>には、<ruby>身<rt>み</rt></ruby>を<ruby>削<rt>けず</rt></ruby>るほどの<ruby>深<rt>ふか</rt></ruby>い<ruby>愛情<rt>あいじょう</rt></ruby>を<ruby>注<rt>そそ</rt></ruby>ぐ。<ruby>感情<rt>かんじょう</rt></ruby>を<ruby>溜<rt>た</rt></ruby>め<ruby>込<rt>こ</rt></ruby>みやすく、<ruby>限界<rt>げんかい</rt></ruby>を<ruby>超<rt>こ</rt></ruby>えると<ruby>周囲<rt>しゅうい</rt></ruby>を<ruby>凍<rt>こお</rt></ruby>りつかせるほどの<ruby>吹雪<rt>ふぶき</rt></ruby>（<ruby>怒<rt>いか</rt></ruby>り）を<ruby>放<rt>はな</rt></ruby>つ。", lore: "<ruby>雪深<rt>ゆきぶか</rt></ruby>い<ruby>山<rt>やま</rt></ruby>や<ruby>吹雪<rt>ふぶき</rt></ruby>の<ruby>夜<rt>よる</rt></ruby>に<ruby>現<rt>あらわ</rt></ruby>れる、<ruby>息<rt>いき</rt></ruby>をのむほど<ruby>美<rt>うつく</rt></ruby>しく<ruby>氷<rt>こおり</rt></ruby>のように<ruby>冷<rt>つめ</rt></ruby>たい<ruby>妖怪<rt>ようかい</rt></ruby>。<br><ruby>純白<rt>じゅんぱく</rt></ruby>の<ruby>着物<rt>きもの</rt></ruby>をまとい、<ruby>口<rt>くち</rt></ruby>から<ruby>吐<rt>は</rt></ruby>き<ruby>出<rt>だ</rt></ruby>す<ruby>白<rt>しろ</rt></ruby>い<ruby>息<rt>いき</rt></ruby>は<ruby>触<rt>ふ</rt></ruby>れたものを<ruby>一瞬<rt>いっしゅん</rt></ruby>で<ruby>凍<rt>こお</rt></ruby>りつかせる。<br><ruby>恐<rt>おそ</rt></ruby>れられる<ruby>一方<rt>いっぽう</rt></ruby>で、<ruby>人間<rt>にんげん</rt></ruby>の<ruby>優<rt>やさ</rt></ruby>しさに<ruby>触<rt>ふ</rt></ruby>れて<ruby>一途<rt>いちず</rt></ruby>に<ruby>愛<rt>あい</rt></ruby>を<ruby>捧<rt>ささ</rt></ruby>げる<ruby>切<rt>せつ</rt></ruby>ない<ruby>伝説<rt>でんせつ</rt></ruby>も<ruby>残<rt>のこ</rt></ruby>されている。" },
+        "ESTJ": { name: "<ruby>輪入道<rt>わにゅうどう</rt></ruby>", img: "estj.png", theme: "theme-blue", desc: "<ruby>厳格<rt>げんかく</rt></ruby>な<ruby>規律家<rt>きりつか</rt></ruby>。<ruby>自<rt>みずか</rt></ruby>ら<ruby>先頭<rt>せんとう</rt></ruby>を<ruby>切<rt>き</rt></ruby>って<ruby>走<rt>はし</rt></ruby>り、<ruby>組織<rt>そしき</rt></ruby>の<ruby>秩序<rt>ちつじょ</rt></ruby>を<ruby>乱<rt>みだ</rt></ruby>す<ruby>不届<rt>ふとど</rt></ruby>き<ruby>者<rt>もの</rt></ruby>を<ruby>決<rt>けっ</rt></ruby>して<ruby>許<rt>ゆる</rt></ruby>さない。<ruby>正義感<rt>せいぎかん</rt></ruby>が<ruby>強<rt>つよ</rt></ruby>く、<ruby>実務能力<rt>じつむのうりょく</rt></ruby>が<ruby>非常<rt>ひじょう</rt></ruby>に<ruby>高<rt>たか</rt></ruby>い。<ruby>ルール<rt>るーる</rt></ruby>に<ruby>従<rt>したが</rt></ruby>わない<ruby>者<rt>もの</rt></ruby>には、<ruby>炎<rt>ほのお</rt></ruby>のような<ruby>言葉<rt>ことば</rt></ruby>で<ruby>真<rt>ま</rt></ruby>っ<ruby>向<rt>こう</rt></ruby>から<ruby>指導<rt>しどう</rt></ruby>する。<ruby>柔軟性<rt>じゅうなんせい</rt></ruby>に<ruby>欠<rt>か</rt></ruby>け、<ruby>自分<rt>じぶん</rt></ruby>のやり<ruby>方<rt>かた</rt></ruby>を<ruby>他人<rt>たにん</rt></ruby>に<ruby>押<rt>お</rt></ruby>し<ruby>付<rt>つ</rt></ruby>けてしまう「<ruby>独裁的<rt>どくさいてき</rt></ruby>な<ruby>車輪<rt>しゃりん</rt></ruby>」になりがち。", lore: "<ruby>燃<rt>も</rt></ruby>え<ruby>盛<rt>さか</rt></ruby>る<ruby>炎<rt>ほのお</rt></ruby>に<ruby>包<rt>つつ</rt></ruby>まれた<ruby>巨大<rt>きょだい</rt></ruby>な<ruby>車輪<rt>しゃりん</rt></ruby>の<ruby>中央<rt>ちゅうおう</rt></ruby>に、<ruby>恐<rt>おそ</rt></ruby>ろしい<ruby>男<rt>おとこ</rt></ruby>の<ruby>顔<rt>かお</rt></ruby>が<ruby>浮<rt>う</rt></ruby>かぶ<ruby>妖怪<rt>ようかい</rt></ruby>。<br><ruby>夜<rt>よる</rt></ruby>の<ruby>街道<rt>かいどう</rt></ruby>を<ruby>地響<rt>じひび</rt></ruby>きのような<ruby>轟音<rt>ごうおん</rt></ruby>を<ruby>立<rt>た</rt></ruby>てて<ruby>猛<rt>もう</rt></ruby>スピードで<ruby>駆<rt>か</rt></ruby>け<ruby>巡<rt>めぐ</rt></ruby>り、<ruby>見<rt>み</rt></ruby>る<ruby>者<rt>もの</rt></ruby>を<ruby>圧倒<rt>あっとう</rt></ruby>する。<br><ruby>破<rt>やぶ</rt></ruby>ってはならない<ruby>掟<rt>おきて</rt></ruby>を<ruby>守<rt>まも</rt></ruby>らせる<ruby>番人<rt>ばんにん</rt></ruby>であり、<ruby>悪事<rt>あくじ</rt></ruby>を<ruby>働<rt>はたら</rt></ruby>く<ruby>者<rt>もの</rt></ruby>を<ruby>容赦<rt>ようしゃ</rt></ruby>なく<ruby>懲<rt>こ</rt></ruby>らしめる。" },
+        "ESFJ": { name: "<ruby>姑獲鳥<rt>うぶめ</rt></ruby>", img: "esfj.png", theme: "theme-blue", desc: "お<ruby>節介<rt>せっかい</rt></ruby>な<ruby>奉仕者<rt>ほうししゃ</rt></ruby>。<ruby>誰<rt>だれ</rt></ruby>かを<ruby>世話<rt>せわ</rt></ruby>し、<ruby>守<rt>まも</rt></ruby>ることに<ruby>命<rt>いのち</rt></ruby>を<ruby>懸<rt>か</rt></ruby>ける「<ruby>怪異<rt>かいい</rt></ruby>の<ruby>母<rt>はは</rt></ruby>」。<ruby>社交的<rt>しゃこうてき</rt></ruby>で、コミュニティの<ruby>和<rt>わ</rt></ruby>を<ruby>何<rt>なに</rt></ruby>よりも<ruby>大切<rt>たいせつ</rt></ruby>にする。<ruby>他人<rt>たにん</rt></ruby>の<ruby>喜<rt>よろこ</rt></ruby>びが<ruby>自分<rt>じぶん</rt></ruby>の<ruby>喜<rt>よろこ</rt></ruby>びであり、<ruby>常<rt>つね</rt></ruby>に<ruby>周囲<rt>しゅうい</rt></ruby>に<ruby>気<rt>き</rt></ruby>を<ruby>配<rt>くば</rt></ruby>っている。<ruby>他人<rt>たにん</rt></ruby>の<ruby>問題<rt>もんだい</rt></ruby>に<ruby>首<rt>くび</rt></ruby>を<ruby>突<rt>つ</rt></ruby>っ<ruby>込<rt>こ</rt></ruby>みすぎて、「<ruby>重<rt>おも</rt></ruby>すぎる<ruby>愛<rt>あい</rt></ruby>」が<ruby>相手<rt>あいて</rt></ruby>の<ruby>負担<rt>ふたん</rt></ruby>になることも。", lore: "<ruby>夜道<rt>よみち</rt></ruby>に<ruby>現<rt>あらわ</rt></ruby>れ、<ruby>通<rt>とお</rt></ruby>りがかる<ruby>人<rt>ひと</rt></ruby>に「この<ruby>子<rt>こ</rt></ruby>を<ruby>少<rt>すこ</rt></ruby>しの<ruby>間<rt>あいだ</rt></ruby><ruby>抱<rt>だ</rt></ruby>いてほしい」と<ruby>頼<rt>たの</rt></ruby>み<ruby>込<rt>こ</rt></ruby>む<ruby>鳥<rt>とり</rt></ruby>の<ruby>妖怪<rt>ようかい</rt></ruby>。<br><ruby>手渡<rt>てわた</rt></ruby>された<ruby>赤ん坊<rt>あかんぼう</rt></ruby>を<ruby>抱<rt>だ</rt></ruby>き<ruby>続<rt>つづ</rt></ruby>けると、<ruby>石<rt>いし</rt></ruby>のようにどんどん<ruby>重<rt>おも</rt></ruby>くなっていくという。<br><ruby>我<rt>わ</rt></ruby>が<ruby>子<rt>こ</rt></ruby>を<ruby>深<rt>ふか</rt></ruby>く<ruby>想<rt>おも</rt></ruby>う<ruby>母親<rt>ははおや</rt></ruby>の<ruby>強<rt>つよ</rt></ruby>い<ruby>情念<rt>じょうねん</rt></ruby>が<ruby>姿<rt>すがた</rt></ruby>を<ruby>変<rt>か</rt></ruby>えた<ruby>存在<rt>そんざい</rt></ruby>で、どこか<ruby>切<rt>せつ</rt></ruby>ない<ruby>哀愁<rt>あいしゅう</rt></ruby>を<ruby>漂<rt>ただよ</rt></ruby>わせる。" },
+        "ISTP": { name: "<ruby>鎌鼬<rt>かまいたち</rt></ruby>", img: "istp.png", theme: "theme-yellow", desc: "<ruby>寡黙<rt>かもく</rt></ruby>な<ruby>実戦派<rt>じっせんは</rt></ruby>。<ruby>無駄<rt>むだ</rt></ruby>のない<ruby>動<rt>うご</rt></ruby>きで<ruby>瞬時<rt>しゅんじ</rt></ruby>に<ruby>獲物<rt>えもの</rt></ruby>を<ruby>仕留<rt>しと</rt></ruby>める、<ruby>天性<rt>てんせい</rt></ruby>の<ruby>職人気質<rt>しょくにんかたぎ</rt></ruby>。<ruby>手先<rt>てさき</rt></ruby>が<ruby>器用<rt>きよう</rt></ruby>で、<ruby>道具<rt>どうぐ</rt></ruby>や<ruby>技術<rt>ぎじゅつ</rt></ruby>を<ruby>使<rt>つか</rt></ruby>いこなす。<ruby>一匹狼<rt>いっぴきおおかみ</rt></ruby>を<ruby>好<rt>この</rt></ruby>むが、<ruby>危機的<rt>ききてき</rt></ruby>な<ruby>状況<rt>じょうきょう</rt></ruby>では<ruby>最<rt>もっと</rt></ruby>も<ruby>頼<rt>たよ</rt></ruby>りになるトラブルシューター。<ruby>言葉<rt>ことば</rt></ruby>が<ruby>足<rt>た</rt></ruby>りなさすぎて、<ruby>周囲<rt>しゅうい</rt></ruby>に「<ruby>何<rt>なに</rt></ruby>を<ruby>考<rt>かんが</rt></ruby>えているかわからない」と<ruby>怖<rt>こわ</rt></ruby>がられる。", lore: "つむじ<ruby>風<rt>かぜ</rt></ruby>に<ruby>乗<rt>の</rt></ruby>って<ruby>現<rt>あらわ</rt></ruby>れ、<ruby>鎌<rt>かま</rt></ruby>のような<ruby>鋭<rt>するど</rt></ruby>い<ruby>爪<rt>つめ</rt></ruby>で<ruby>人<rt>ひと</rt></ruby>を<ruby>切<rt>き</rt></ruby>りつけるイタチの<ruby>怪異<rt>かいい</rt></ruby>。<br>「<ruby>転<rt>ころ</rt></ruby>ばせる」「<ruby>切<rt>き</rt></ruby>る」「<ruby>薬<rt>くすり</rt></ruby>を<ruby>塗<rt>ぬ</rt></ruby>る」の<ruby>三匹<rt>さんびき</rt></ruby>が<ruby>連携<rt>れんけい</rt></ruby>するため、<ruby>痛<rt>いた</rt></ruby>みも<ruby>出血<rt>しゅっけつ</rt></ruby>もないとされる。<br><ruby>目<rt>め</rt></ruby>にも<ruby>留<rt>と</rt></ruby>まらぬ<ruby>早業<rt>はやわざ</rt></ruby>で<ruby>風<rt>かぜ</rt></ruby>を<ruby>切<rt>き</rt></ruby>り<ruby>裂<rt>さ</rt></ruby>いて<ruby>走<rt>はし</rt></ruby>り<ruby>去<rt>さ</rt></ruby>る、<ruby>神速<rt>しんそく</rt></ruby>と<ruby>職人技<rt>しょくにんわざ</rt></ruby>の<ruby>象徴<rt>しょうちょう</rt></ruby>。" },
+        "ISFP": { name: "<ruby>小豆洗<rt>あずきあら</rt></ruby>い", img: "isfp.png", theme: "theme-yellow", desc: "<ruby>独自<rt>どくじ</rt></ruby>の<ruby>感性<rt>かんせい</rt></ruby>を<ruby>持<rt>も</rt></ruby>つ<ruby>芸術家<rt>げいじゅつか</rt></ruby>。<ruby>誰<rt>だれ</rt></ruby>にも<ruby>邪魔<rt>じゃま</rt></ruby>されないリズムで、<ruby>自分<rt>じぶん</rt></ruby>だけの「<ruby>音<rt>おと</rt></ruby>」を<ruby>奏<rt>かな</rt></ruby>で<ruby>続<rt>つづ</rt></ruby>ける。<ruby>温厚<rt>おんこう</rt></ruby>で<ruby>感受性<rt>かんじゅせい</rt></ruby>が<ruby>豊<rt>ゆた</rt></ruby>か。<ruby>美的<rt>びてき</rt></ruby>センスがあり、<ruby>今<rt>いま</rt></ruby>この<ruby>瞬間<rt>しゅんかん</rt></ruby>の<ruby>美<rt>うつく</rt></ruby>しさや<ruby>感覚<rt>かんかく</rt></ruby>を<ruby>大切<rt>たいせつ</rt></ruby>に<ruby>生<rt>い</rt></ruby>きている。<ruby>衝突<rt>しょうとつ</rt></ruby>を<ruby>避<rt>さ</rt></ruby>けるあまり、<ruby>嫌<rt>いや</rt></ruby>なことがあっても<ruby>何<rt>なに</rt></ruby>も<ruby>言<rt>い</rt></ruby>わずに<ruby>川<rt>かわ</rt></ruby>へ<ruby>逃<rt>に</rt></ruby>げ<ruby>込<rt>こ</rt></ruby>んでしまう。", lore: "<ruby>清<rt>きよ</rt></ruby>らかな<ruby>川<rt>かわ</rt></ruby>のほとりで「<ruby>小豆洗<rt>あずきあら</rt></ruby>おか、<ruby>人取<rt>ひとと</rt></ruby>って<ruby>食<rt>く</rt></ruby>おか」と<ruby>歌<rt>うた</rt></ruby>いながら<ruby>小豆<rt>あずき</rt></ruby>を<ruby>洗<rt>あら</rt></ruby>う<ruby>妖怪<rt>ようかい</rt></ruby>。<br>ショキショキと<ruby>小豆<rt>あずき</rt></ruby>を<ruby>研<rt>と</rt></ruby>ぐ<ruby>心地<rt>ここち</rt></ruby>よい<ruby>音<rt>おと</rt></ruby>を<ruby>響<rt>ひび</rt></ruby>かせるが、<ruby>近<rt>ちか</rt></ruby>づいても<ruby>姿<rt>すがた</rt></ruby>は<ruby>見当<rt>みあ</rt></ruby>たらない。<br><ruby>人<rt>ひと</rt></ruby>を<ruby>脅<rt>おどか</rt></ruby>す<ruby>歌<rt>うた</rt></ruby>を<ruby>口<rt>くち</rt></ruby>ずさむものの、<ruby>実際<rt>じっさい</rt></ruby>に<ruby>人<rt>ひと</rt></ruby>を<ruby>襲<rt>おそ</rt></ruby>うことはない<ruby>無害<rt>むがい</rt></ruby>でのどかな<ruby>怪異<rt>かいい</rt></ruby>。" },
+        "ESTP": { name: "<ruby>土蜘蛛<rt>つちぐも</rt></ruby>", img: "estp.png", theme: "theme-yellow", desc: "<ruby>恐<rt>おそ</rt></ruby>れ<ruby>知<rt>し</rt></ruby>らずの<ruby>勝負師<rt>しょうぶし</rt></ruby>。ピンチをチャンスに<ruby>変<rt>か</rt></ruby>え、<ruby>大胆<rt>だいたん</rt></ruby>な<ruby>策<rt>さく</rt></ruby>で<ruby>敵<rt>てき</rt></ruby>を<ruby>翻弄<rt>ほんろう</rt></ruby>する。<ruby>非常<rt>ひじょう</rt></ruby>に<ruby>精力的<rt>せいりょくてき</rt></ruby>で、<ruby>考<rt>かんが</rt></ruby>えるよりも<ruby>先<rt>さき</rt></ruby>に<ruby>体<rt>からだ</rt></ruby>が<ruby>動<rt>うご</rt></ruby>く。<ruby>実利<rt>じつり</rt></ruby>を<ruby>重<rt>おも</rt></ruby>んじ、スリルを<ruby>楽<rt>たの</rt></ruby>しむ<ruby>度胸<rt>どきょう</rt></ruby>は<ruby>随一<rt>ずいいち</rt></ruby>。<ruby>先<rt>さき</rt></ruby>の<ruby>計画<rt>けいかく</rt></ruby>を<ruby>立<rt>た</rt></ruby>てるのが<ruby>苦手<rt>にがて</rt></ruby>で、その<ruby>場<rt>ば</rt></ruby>のノリで<ruby>突<rt>つ</rt></ruby>き<ruby>進<rt>すす</rt></ruby>み、<ruby>後<rt>あと</rt></ruby>で<ruby>蜘蛛<rt>くも</rt></ruby>の<ruby>子<rt>こ</rt></ruby>を<ruby>散<rt>ち</rt></ruby>らすような<ruby>事態<rt>じたい</rt></ruby>に。", lore: "<ruby>山奥<rt>やまおく</rt></ruby>の<ruby>洞窟<rt>どうくつ</rt></ruby>に<ruby>潜<rt>ひそ</rt></ruby>み、<ruby>強靭<rt>きょうじん</rt></ruby>な<ruby>糸<rt>いと</rt></ruby>と<ruby>毒針<rt>どくばり</rt></ruby>で<ruby>獲物<rt>えもの</rt></ruby>を<ruby>仕留<rt>しと</rt></ruby>める<ruby>巨大<rt>きょだい</rt></ruby>な<ruby>蜘蛛<rt>くも</rt></ruby>の<ruby>怪物<rt>かいぶつ</rt></ruby>。<br>かつて<ruby>源頼光<rt>みなもとのよりみつ</rt></ruby>ら<ruby>名<rt>な</rt></ruby>だたる<ruby>武将<rt>ぶしょう</rt></ruby>たちと<ruby>死闘<rt>しとう</rt></ruby>を<ruby>繰<rt>く</rt></ruby>り<ruby>広<rt>ひろ</rt></ruby>げた、<ruby>伝説屈指<rt>でんせつくっし</rt></ruby>の<ruby>強敵<rt>きょうてき</rt></ruby>である。<br>いかなる<ruby>強大<rt>きょうだい</rt></ruby>な<ruby>支配<rt>しはい</rt></ruby>にも<ruby>決<rt>けっ</rt></ruby>して<ruby>屈<rt>くっ</rt></ruby>しなかった、<ruby>古代<rt>こだい</rt></ruby>の<ruby>強者<rt>つわもの</rt></ruby>たちの<ruby>魂<rt>たましい</rt></ruby>が<ruby>宿<rt>やど</rt></ruby>るともいわれる。" },
+        "ESFP": { name: "<ruby>天逆毎<rt>あまのざこ</rt></ruby>", img: "esfp.png", theme: "theme-yellow", desc: "<ruby>破天荒<rt>はてんこう</rt></ruby>な<ruby>享楽家<rt>きょうらくか</rt></ruby>。<ruby>退屈<rt>たいくつ</rt></ruby>な<ruby>日常<rt>にちじょう</rt></ruby>を<ruby>破壊<rt>はかい</rt></ruby>し、ド<ruby>派手<rt>はで</rt></ruby>な<ruby>宴<rt>うたげ</rt></ruby>や<ruby>騒動<rt>そうどう</rt></ruby>を<ruby>巻<rt>ま</rt></ruby>き<ruby>起<rt>お</rt></ruby>こすのが<ruby>生<rt>い</rt></ruby>きがい。<ruby>感情表現<rt>かんじょうひょうげん</rt></ruby>が<ruby>豊<rt>ゆた</rt></ruby>かで、<ruby>周囲<rt>しゅうい</rt></ruby>を<ruby>惹<rt>ひ</rt></ruby>きつけるエネルギーに<ruby>満<rt>み</rt></ruby>ちている。<ruby>今<rt>いま</rt></ruby>が<ruby>楽<rt>たの</rt></ruby>しければそれでいい、という<ruby>刹那主義者<rt>せつなしゅぎしゃ</rt></ruby>。<ruby>飽<rt>あ</rt></ruby>きっぽく、<ruby>注目<rt>ちゅうもく</rt></ruby>されていないと<ruby>機嫌<rt>きげん</rt></ruby>が<ruby>悪<rt>わる</rt></ruby>くなって<ruby>暴<rt>あば</rt></ruby>れ<ruby>出<rt>だ</rt></ruby>す。", lore: "<ruby>荒<rt>あら</rt></ruby>ぶる<ruby>神<rt>かみ</rt></ruby>・スサノオの<ruby>凄<rt>すさ</rt></ruby>まじい<ruby>気<rt>き</rt></ruby>から<ruby>生<rt>う</rt></ruby>まれたとされる、<ruby>天邪鬼<rt>あまのじゃく</rt></ruby>の<ruby>祖<rt>そ</rt></ruby>。<br><ruby>人<rt>ひと</rt></ruby>の<ruby>言<rt>い</rt></ruby>うことと<ruby>何<rt>なん</rt></ruby>でも<ruby>正反対<rt>せいはんたい</rt></ruby>のことをして<ruby>大笑<rt>おおわら</rt></ruby>いし、<ruby>高<rt>たか</rt></ruby>い<ruby>鼻<rt>はな</rt></ruby>と<ruby>鋭<rt>するど</rt></ruby>い<ruby>爪<rt>つめ</rt></ruby>で<ruby>暴風<rt>ぼうふう</rt></ruby>を<ruby>巻<rt>ま</rt></ruby>き<ruby>起<rt>お</rt></ruby>こす。<br><ruby>ルール<rt>るーる</rt></ruby>や<ruby>常識<rt>じょうしき</rt></ruby>を<ruby>豪快<rt>ごうかい</rt></ruby>にひっくり<ruby>返<rt>かえ</rt></ruby>し、<ruby>思<rt>おも</rt></ruby>うがままに<ruby>暴<rt>あば</rt></ruby>れ<ruby>回<rt>まわ</rt></ruby>るエネルギーの<ruby>塊<rt>かたまり</rt></ruby>。" }
+    };
+
+    let currentQ = 0;
+    let scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+    let answerHistory = [];
+    let shuffledQuestions = [];
+    let shuffledThemes = [];
+    let spinAngle = 0;
+    let isAudioEnabled = false;
+
+    window.onload = () => {
+        triggerFadeIn();
+    };
+
+    function initSite(enableAudio) {
+        isAudioEnabled = enableAudio;
+        document.getElementById('audio-modal').classList.remove('active'); 
+        if (isAudioEnabled) {
+            const bgm = document.getElementById('bgm-audio');
+            if (bgm) {
+                bgm.volume = 0.3;
+                bgm.play().catch(e => console.log("BGM再生待機:", e));
+            }
+        }
+    }
+
+    function resetQuiz() {
+        document.body.className = 'theme-green';
+        window.scrollTo(0,0);
+        showScreen('start-screen');
+        
+        const hitodama = document.getElementById('hitodama');
+        if (hitodama) hitodama.style.opacity = '0';
+        document.getElementById('soul-vortex').classList.remove('summon-active');
+        document.getElementById('hitodama-wrapper').style.transform = 'scale(1) rotate(0deg)';
+        document.querySelectorAll('.mini-orbit').forEach(el => {
+            el.classList.remove('active', 'absorb-all');
+        });
+        
+        document.querySelectorAll('.ofuda-btn').forEach(b => b.disabled = false);
+        const btnBack = document.getElementById('btn-back');
+        if (btnBack) btnBack.disabled = false;
+
+        currentQ = 0;
+        spinAngle = 0;
+        scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+        answerHistory = [];
+    }
+
+    function getShareUrl() {
+        return window.location.href.split('?')[0];
+    }
+
+    function shareX(isResult) {
+        let text = "妖怪性格診断 〜 あなたの呼び声に応える十六の怪異 〜\n";
+        if (isResult) {
+            const typeCode = getResultTypeCode();
+            // innerHTMLからプレーンテキストを抽出してシェア
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = resultsData[typeCode].name;
+            const resultName = tempDiv.textContent || tempDiv.innerText || "";
+            text = `私の魂の波長は【${typeCode}型】でした！召喚された妖怪は「${resultName}」です。🏮\n#妖怪性格診断\n`;
+        }
+        const url = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(getShareUrl())}`;
+        window.open(url, '_blank');
+    }
+
+    function shareIG() {
+        navigator.clipboard.writeText(getShareUrl()).then(() => {
+            alert("サイトのURLをコピーしました！\nInstagramを開いて、ストーリーズや投稿にペーストしてシェアしてください📸");
+        }).catch(() => {
+            alert("コピーに失敗しました。お手数ですがURLを手動でコピーしてください。");
+        });
+    }
+
+    function copyLink() {
+        navigator.clipboard.writeText(getShareUrl()).then(() => {
+            alert("サイトのURLをコピーしました！");
+        }).catch(() => {
+            alert("コピーに失敗しました。");
+        });
+    }
+
+    function shuffleArray(array) {
+        let curId = array.length;
+        while (0 !== curId) {
+            let randId = Math.floor(Math.random() * curId);
+            curId -= 1;
+            let tmp = array[curId];
+            array[curId] = array[randId];
+            array[randId] = tmp;
+        }
+        return array;
+    }
+
+    function updateBackgroundTheme() {
+        const body = document.body;
+        body.className = ''; 
+        let themeIndex = Math.floor(currentQ / 3);
+        if (themeIndex > 3) themeIndex = 3;
+        body.classList.add(shuffledThemes[themeIndex]);
+    }
+
+    function updateHitodamaEvolution() {
+        const orbit = document.getElementById('hitodama-orbit');
+        orbit.className = '';
+        if (currentQ < 3) {
+            orbit.classList.add('stage-1');
+        } else if (currentQ < 6) {
+            orbit.classList.add('stage-2');
+        } else if (currentQ < 9) {
+            orbit.classList.add('stage-3');
+        } else {
+            orbit.classList.add('stage-4');
+        }
+
+        const thresholds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        thresholds.forEach((t, idx) => {
+            const el = document.getElementById(`mini-${idx + 1}`);
+            if (el) {
+                el.classList.remove('absorb-all');
+                el.classList.toggle('active', currentQ >= t);
+            }
+        });
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        triggerFadeIn(); 
+    }
+
+    function triggerFadeIn() {
+        const elements = document.querySelectorAll('.active .fade-target');
+        elements.forEach(el => {
+            el.classList.remove('fade-out-content', 'fade-in-content');
+            void el.offsetWidth;
+            el.classList.add('fade-in-content');
+        });
+    }
+
+    function triggerFadeOut() {
+        const elements = document.querySelectorAll('.active .fade-target');
+        elements.forEach(el => {
+            el.classList.remove('fade-in-content');
+            el.classList.add('fade-out-content');
+        });
+    }
+
+    function startQuiz() {
+        currentQ = 0;
+        spinAngle = 0;
+        scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+        answerHistory = [];
+        
+        shuffledQuestions = shuffleArray([...originalQuestions]);
+        shuffledThemes = shuffleArray(['theme-green', 'theme-blue', 'theme-yellow', 'theme-purple']);
+        
+        updateBackgroundTheme();
+        updateHitodamaEvolution();
+
+        document.getElementById('soul-vortex').classList.remove('summon-active');
+
+        const hitodama = document.getElementById('hitodama');
+        hitodama.style.opacity = '1';
+        hitodama.style.width = '24px';
+        hitodama.style.height = '24px';
+        hitodama.style.boxShadow = '0 0 10px #ffffff, 0 0 20px var(--soul-mid), 0 0 35px var(--soul-glow)';
+        document.documentElement.style.setProperty('--soul-radius', '12px');
+        document.getElementById('hitodama-wrapper').style.transform = 'scale(1) rotate(0deg)';
+        
+        triggerFadeOut();
+        setTimeout(() => {
+            loadQuestion();
+            showScreen('question-screen');
+        }, 400); 
+    }
+
+    function loadQuestion() {
+        updateBackgroundTheme(); 
+        updateHitodamaEvolution();
+        const qData = shuffledQuestions[currentQ];
+        
+        let maku = "";
+        if(currentQ < 3) maku = "<ruby>第一幕<rt>だいいちまく</rt></ruby>";
+        else if(currentQ < 6) maku = "<ruby>第二幕<rt>だいにまく</rt></ruby>";
+        else if(currentQ < 9) maku = "<ruby>第三幕<rt>だいさんまく</rt></ruby>";
+        else maku = "<ruby>最終幕<rt>さいしゅうまく</rt></ruby>";
+
+        document.getElementById('progress-text').innerHTML = `${maku}：<ruby>第<rt>だい</rt></ruby>${currentQ + 1}<ruby>問<rt>もん</rt></ruby> / <ruby>全<rt>ぜん</rt></ruby>12<ruby>問<rt>もん</rt></ruby>`;
+        document.getElementById('question-text').innerHTML = qData.q;
+        document.getElementById('btn-a').innerHTML = qData.a;
+        document.getElementById('btn-b').innerHTML = qData.b;
+
+        const btnBack = document.getElementById('btn-back');
+        if (btnBack) {
+            btnBack.style.display = (currentQ > 0) ? 'inline-block' : 'none';
+        }
+    }
+
+    function goBack() {
+        if (currentQ === 0 || answerHistory.length === 0) return;
+
+        const btns = document.querySelectorAll('.ofuda-btn');
+        btns.forEach(b => b.disabled = true);
+        const btnBack = document.getElementById('btn-back');
+        if (btnBack) btnBack.disabled = true;
+
+        const lastType = answerHistory.pop();
+        scores[lastType]--;
+        currentQ--;
+        spinAngle -= 180; 
+
+        const hitodama = document.getElementById('hitodama');
+        const hWrapper = document.getElementById('hitodama-wrapper');
+        hWrapper.style.transform = `scale(1) rotate(${spinAngle}deg)`;
+        
+        const newSize = 24 + (currentQ * 4);
+        hitodama.style.width = newSize + 'px';
+        hitodama.style.height = newSize + 'px';
+        document.documentElement.style.setProperty('--soul-radius', (newSize / 2) + 'px');
+        
+        const spread1 = 12 + currentQ * 2;
+        const spread2 = 24 + currentQ * 5;
+        const spread3 = 38 + currentQ * 7;
+        hitodama.style.boxShadow = `0 0 ${spread1}px #ffffff, 0 0 ${spread2}px var(--soul-mid), 0 0 ${spread3}px var(--soul-glow)`;
+
+        triggerFadeOut();
+
+        setTimeout(() => {
+            loadQuestion();
+            triggerFadeIn();
+            
+            btns.forEach(b => b.disabled = false);
+            if (btnBack) btnBack.disabled = false;
+        }, 400);
+    }
+
+    function answer(choice, event) {
+        if (isAudioEnabled) {
+            const absorbSe = document.getElementById('se-absorb');
+            if (absorbSe) {
+                absorbSe.currentTime = 0;
+                absorbSe.volume = 0.8;
+                absorbSe.play().catch(e => {});
+            }
+        }
+
+        const btns = document.querySelectorAll('.ofuda-btn');
+        btns.forEach(b => b.disabled = true);
+        const btnBack = document.getElementById('btn-back');
+        if (btnBack) btnBack.disabled = true; 
+        
+        const qData = shuffledQuestions[currentQ];
+        const chosenType = (choice === 'A') ? qData.typeA : qData.typeB;
+        answerHistory.push(chosenType);
+        scores[chosenType]++;
+
+        const startX = event.clientX;
+        const startY = event.clientY;
+        const numFlames = 14;
+        let absorbedCount = 0;
+
+        for (let i = 0; i < numFlames; i++) {
+            createFireball(startX, startY, i, numFlames, () => {
+                absorbedCount++;
+                if (absorbedCount === numFlames) {
+                    flareUpHitodama(); 
+                }
+            });
+        }
+    }
+
+    function createFireball(startX, startY, index, total, onHit) {
+        const particle = document.createElement('div');
+        particle.className = 'fire-particle';
+        document.body.appendChild(particle);
+
+        const size = Math.floor(7 + Math.random() * 16);
+        const palette = getCurrentPalette();
+        const color = palette[Math.floor(Math.random() * palette.length)];
+
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.left = (startX - size / 2) + 'px';
+        particle.style.top = (startY - size / 2) + 'px';
+        particle.style.background = `radial-gradient(circle, #ffffff 0%, #ffffff 50%, ${color.light} 80%, ${color.mid} 100%)`;
+        particle.style.boxShadow = `0 0 ${size * 0.6}px #ffffff, 0 0 ${size * 1.4}px ${color.mid}, 0 0 ${size * 2.2}px ${color.glow}`;
+
+        const angle = (Math.PI * 2 / total) * index + (Math.random() * 0.6 - 0.3);
+        const distance = 45 + Math.random() * 75;
+        const scatterX = Math.cos(angle) * distance;
+        const scatterY = Math.sin(angle) * distance;
+        const randomScale = 0.85 + Math.random() * 0.85;
+
+        setTimeout(() => {
+            particle.style.transition = 'transform 0.3s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 0.3s';
+            particle.style.transform = `translate(${scatterX}px, ${scatterY}px) scale(${randomScale})`;
+        }, 10);
+
+        setTimeout(() => {
+            const flyTime = 0.38 + Math.random() * 0.32;
+            particle.style.transition = `transform ${flyTime}s cubic-bezier(0.8, 0, 1, 1), opacity ${flyTime}s`;
+            
+            const hitodama = document.getElementById('hitodama');
+            const hRect = hitodama.getBoundingClientRect();
+            const targetX = hRect.left + (hRect.width / 2);
+            const targetY = hRect.top + (hRect.height / 2);
+
+            const moveX = targetX - startX;
+            const moveY = targetY - startY;
+
+            particle.style.transform = `translate(${moveX}px, ${moveY}px) scale(0.1)`;
+
+            setTimeout(() => {
+                particle.remove();
+                onHit();
+            }, flyTime * 1000);
+
+        }, 300 + Math.random() * 100);
+    }
+
+    function flareUpHitodama() {
+        currentQ++;
+        const hitodama = document.getElementById('hitodama');
+        const hWrapper = document.getElementById('hitodama-wrapper');
+        const btns = document.querySelectorAll('.ofuda-btn');
+
+        spinAngle += 180;
+        hWrapper.style.transform = `scale(1.45) rotate(${spinAngle}deg)`;
+        setTimeout(() => { 
+            hWrapper.style.transform = `scale(1) rotate(${spinAngle}deg)`; 
+        }, 220);
+
+        const newSize = 24 + (currentQ * 4);
+        hitodama.style.width = newSize + 'px';
+        hitodama.style.height = newSize + 'px';
+        document.documentElement.style.setProperty('--soul-radius', (newSize / 2) + 'px');
+        
+        const spread1 = 12 + currentQ * 2;
+        const spread2 = 24 + currentQ * 5;
+        const spread3 = 38 + currentQ * 7;
+        hitodama.style.boxShadow = `0 0 ${spread1}px #ffffff, 0 0 ${spread2}px var(--soul-mid), 0 0 ${spread3}px var(--soul-glow)`;
+
+        triggerFadeOut();
+
+        setTimeout(() => {
+            if (currentQ < originalQuestions.length) {
+                loadQuestion();
+                triggerFadeIn(); 
+                btns.forEach(b => b.disabled = false); 
+                const btnBack = document.getElementById('btn-back');
+                if (btnBack) btnBack.disabled = false;
+            } else {
+                triggerResultAnimation();
+            }
+        }, 400);
+    }
+
+    function spawnHitodamaClimax(centerX, centerY, targetTheme) {
+        const palette = getCurrentPalette(targetTheme);
+
+        for (let r = 0; r < 4; r++) {
+            setTimeout(() => {
+                const ripple = document.createElement('div');
+                ripple.className = 'climax-ripple';
+                const color = palette[r % palette.length];
+                ripple.style.left = centerX + 'px';
+                ripple.style.top = centerY + 'px';
+                ripple.style.width = '100px';
+                ripple.style.height = '100px';
+                ripple.style.border = `3px solid ${color.mid}`;
+                ripple.style.boxShadow = `0 0 20px #ffffff, 0 0 30px ${color.glow}, inset 0 0 20px ${color.light}`;
+                document.body.appendChild(ripple);
+
+                setTimeout(() => {
+                    ripple.style.transition = 'transform 1.1s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 1.1s ease-out';
+                    ripple.style.transform = 'translate(-50%, -50%) scale(8.5)';
+                    ripple.style.opacity = '0';
+                }, 20);
+
+                setTimeout(() => ripple.remove(), 1200);
+            }, r * 140);
+        }
+
+        const totalSouls = 45;
+        for (let i = 0; i < totalSouls; i++) {
+            const s = document.createElement('div');
+            s.className = 'burst-hitodama';
+            document.body.appendChild(s);
+
+            const size = Math.floor(8 + Math.random() * 26);
+            const color = palette[Math.floor(Math.random() * palette.length)];
+
+            s.style.width = size + 'px';
+            s.style.height = size + 'px';
+            s.style.left = (centerX - size / 2) + 'px';
+            s.style.top = (centerY - size / 2) + 'px';
+            s.style.background = `radial-gradient(circle, #ffffff 0%, #ffffff 50%, ${color.light} 80%, ${color.mid} 100%)`;
+            s.style.boxShadow = `0 0 ${size * 0.7}px #ffffff, 0 0 ${size * 1.5}px ${color.mid}, 0 0 ${size * 2.2}px ${color.glow}`;
+
+            const baseAngle = (Math.PI * 2 / totalSouls) * i;
+            const swirlOffset = 0.8 + Math.random() * 0.8;
+            const dist = 140 + Math.random() * 420;
+
+            const midX = Math.cos(baseAngle) * (dist * 0.35);
+            const midY = Math.sin(baseAngle) * (dist * 0.35);
+            const finalX = Math.cos(baseAngle + swirlOffset) * dist;
+            const finalY = Math.sin(baseAngle + swirlOffset) * dist;
+
+            setTimeout(() => {
+                s.style.transition = 'transform 0.35s ease-out';
+                s.style.transform = `translate(${midX}px, ${midY}px) scale(1.3)`;
+            }, 15);
+
+            setTimeout(() => {
+                s.style.transition = 'transform 0.95s cubic-bezier(0.1, 0.85, 0.25, 1), opacity 0.95s ease-out';
+                s.style.transform = `translate(${finalX}px, ${finalY}px) scale(0.2)`;
+                s.style.opacity = '0';
+            }, 350);
+
+            setTimeout(() => s.remove(), 1350);
+        }
+    }
+
+    function getResultTypeCode() {
+        const isE = scores.E > scores.I;
+        const isS = scores.S > scores.N;
+        const isT = scores.T > scores.F;
+        const isJ = scores.J > scores.P;
+        return (isE ? "E" : "I") + (isS ? "S" : "N") + (isT ? "T" : "F") + (isJ ? "J" : "P");
+    }
+
+    function triggerResultAnimation() {
+        if (isAudioEnabled) {
+            const climaxSe = document.getElementById('se-climax');
+            if (climaxSe) {
+                climaxSe.currentTime = 0;
+                climaxSe.volume = 1.0;
+                climaxSe.play().catch(e => {});
+            }
+        }
+
+        const hOrbit = document.getElementById('hitodama-orbit');
+        const hWrapper = document.getElementById('hitodama-wrapper');
+        const hitodama = document.getElementById('hitodama');
+        const vortex = document.getElementById('soul-vortex');
+        const flash = document.getElementById('flash-overlay');
+
+        const finalType = getResultTypeCode();
+        const finalTheme = resultsData[finalType].theme;
+
+        hOrbit.className = '';
+        document.querySelectorAll('.mini-orbit.active').forEach(el => {
+            el.classList.add('absorb-all');
+        });
+
+        vortex.classList.add('summon-active');
+
+        const rect = hitodama.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        setTimeout(() => {
+            spawnHitodamaClimax(centerX, centerY, finalTheme);
+        }, 250);
+
+        setTimeout(() => {
+            flash.style.transition = 'opacity 0.75s ease-in';
+            flash.style.opacity = '1';
+            hWrapper.style.transition = 'transform 0.85s cubic-bezier(0.7, 0, 1, 1)';
+            hWrapper.style.transform = `scale(85) rotate(${spinAngle + 540}deg)`;
+            
+            setTimeout(() => {
+                calculateResult();
+                window.scrollTo(0,0);
+                
+                setTimeout(() => {
+                    flash.style.transition = 'opacity 1.5s ease-out';
+                    flash.style.opacity = '0';
+                }, 180);
+            }, 800);
+        }, 700);
+    }
+
+    function calculateResult() {
+        const typeCode = getResultTypeCode();
+        const result = resultsData[typeCode];
+
+        document.body.className = '';
+        document.body.classList.add(result.theme);
+
+        document.getElementById('result-mbti').innerHTML = `<ruby>共鳴<rt>きょうめい</rt></ruby>した<ruby>波長<rt>はちょう</rt></ruby>: ${typeCode}<ruby>型<rt>がた</rt></ruby>`;
+        document.getElementById('result-name').innerHTML = result.name;
+        document.getElementById('result-desc').innerHTML = result.desc;
+        document.getElementById('result-lore').innerHTML = result.lore;
+        
+        const imgElement = document.getElementById('result-img');
+        const boxElement = document.getElementById('result-img-box');
+        
+        boxElement.style.display = 'none';
+        imgElement.src = result.img;
+
+        showScreen('result-screen');
+    }
+</script>
+
+</body>
+</html>
