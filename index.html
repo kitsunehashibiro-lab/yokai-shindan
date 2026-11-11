@@ -43,6 +43,8 @@
 
         body {
             background: linear-gradient(135deg, var(--theme-color-dark) 0%, var(--theme-color-light) 100%);
+            /* ★修正：背景を画面に固定して、スクロール時のズレや途切れを防止 */
+            background-attachment: fixed;
             color: var(--text-dark);
             font-family: 'Shippori Mincho', 'Yu Mincho', 'MS PMincho', serif;
             margin: 0; padding: 50px 0; box-sizing: border-box;
@@ -55,7 +57,8 @@
         rt { font-size: 0.45em; color: inherit; opacity: 0.85; transform: translateY(-2px); }
 
         .checker-pattern {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            /* ★修正：高さ指定を上下左右ピッタリに変更し、スマホでの計算狂いを防ぐ */
+            position: fixed; top: 0; right: 0; bottom: 0; left: 0;
             background-image:
               linear-gradient(45deg, rgba(0,0,0,0.05) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.05)),
               linear-gradient(45deg, rgba(0,0,0,0.05) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.05), 75%, rgba(0,0,0,0.05));
@@ -69,7 +72,8 @@
         }
 
         .container {
-            padding: 35px 25px; background: rgba(255, 252, 248, 0.95); position: relative;
+            padding: 35px 25px 45px 25px; 
+            background: rgba(255, 252, 248, 0.95); position: relative;
             clip-path: polygon(20px 0, calc(100% - 20px) 0, 100% 20px, 100% calc(100% - 20px), calc(100% - 20px) 100%, 20px 100%, 0 calc(100% - 20px), 0 20px);
         }
 
@@ -78,7 +82,6 @@
             pointer-events: none; z-index: 1;
         }
         
-        /* ★修正：常時明滅をなくし、テキスト等と同じようにCSSアニメーションでフェードさせる設定に */
         .static-hitodama {
             position: absolute; width: 45px; height: 45px;
             background-image: var(--corner-hitodama);
@@ -89,20 +92,23 @@
         
         .static-hitodama.top-left { top: 12px; left: 12px; transform: rotate(0deg); }
         .static-hitodama.top-right { top: 12px; right: 12px; transform: rotate(0deg); }
-        .static-hitodama.bottom-left { bottom: 12px; left: 12px; transform: rotate(0deg); }
-        .static-hitodama.bottom-right { bottom: 12px; right: 12px; transform: rotate(0deg); }
+        .static-hitodama.bottom-left { bottom: -5px; left: 12px; transform: rotate(0deg); }
+        .static-hitodama.bottom-right { bottom: -5px; right: 12px; transform: rotate(0deg); }
 
         h1, h2, h3 { color: var(--theme-color-dark); font-weight: 700; margin-top: 0; transition: color 1.5s ease; position: relative; z-index: 2;}
-        h1 { font-size: 32px; letter-spacing: 4px; margin-bottom: 10px; border-bottom: 2px solid var(--theme-color-dark); display: inline-block; padding: 0 20px 10px; transition: border-color 1.5s ease;}
-        .subtitle { color: var(--theme-color-dark); font-size: 14px; margin-bottom: 30px; opacity: 0.8; transition: color 1.5s ease;}
+        /* ★文字サイズアップ */
+        h1 { font-size: 34px; letter-spacing: 4px; margin-bottom: 10px; border-bottom: 2px solid var(--theme-color-dark); display: inline-block; padding: 0 20px 10px; transition: border-color 1.5s ease;}
+        .subtitle { color: var(--theme-color-dark); font-size: 15px; margin-bottom: 30px; opacity: 0.8; transition: color 1.5s ease;}
         
-        p { line-height: 2.4; font-size: 17px; margin-bottom: 20px; font-weight: bold; position: relative; z-index: 2;}
+        /* ★修正：質問文などの基本文字サイズを 17px → 19px に拡大 */
+        p { line-height: 2.4; font-size: 19px; margin-bottom: 20px; font-weight: bold; position: relative; z-index: 2;}
         
         .ofuda-btn {
             display: block; width: 100%; padding: 20px 15px; margin: 15px 0;
             background-color: var(--ofuda-bg); color: var(--text-dark);
             border: 3px solid var(--theme-color-dark); border-radius: 4px;
-            font-family: inherit; font-size: 16px; font-weight: bold; line-height: 1.8;
+            /* ★修正：ボタンの文字サイズを 16px → 18px に拡大 */
+            font-family: inherit; font-size: 18px; font-weight: bold; line-height: 1.8;
             cursor: pointer; position: relative; transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 1.5s ease;
             box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1); z-index: 2;
             background-image: repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(0, 0, 0, 0.03) 4px, rgba(0, 0, 0, 0.03) 8px);
@@ -117,7 +123,7 @@
 
         .btn-back {
             background: transparent; border: none; color: var(--theme-color-dark);
-            font-family: inherit; font-weight: bold; font-size: 14px; margin-top: 15px;
+            font-family: inherit; font-weight: bold; font-size: 15px; margin-top: 15px;
             cursor: pointer; opacity: 0.7; transition: opacity 0.3s, color 1.5s ease;
             text-decoration: underline; padding: 10px; display: inline-block; position: relative; z-index: 2;
         }
@@ -247,13 +253,12 @@
             border: none; background: transparent; padding: 10px 5px 0; font-size: 15.5px;
         }
 
-        .result-title { font-size: 30px; color: var(--theme-color-dark); font-weight: 700; margin-bottom: 5px; transition: color 1.5s ease; position: relative; z-index: 2;}
-        
-        .result-name { font-size: 40px; margin: 10px 0 20px; color: var(--theme-color-dark); transition: color 1.5s ease;}
-        .progress { font-size: 15px; color: var(--theme-color-dark); font-weight: bold; margin-bottom: 5px; transition: color 1.5s ease; position: relative; z-index: 2;}
-        .result-section-label { font-size: 18px; font-weight: bold; color: var(--theme-color-dark); margin-top: 26px; margin-bottom: 10px; text-align: center; transition: color 1.5s ease; letter-spacing: 2px; position: relative; z-index: 2;}
-        
-        .result-desc { text-align: center; background: rgba(0, 0, 0, 0.03); padding: 18px 22px; border-top: 2px solid var(--theme-color-dark); border-bottom: 2px solid var(--theme-color-dark); margin-top: 0; line-height: 2.4; font-size: 16.5px; transition: border-color 1.5s ease; border-radius: 4px; position: relative; z-index: 2;}
+        /* ★文字サイズアップ */
+        .result-title { font-size: 32px; color: var(--theme-color-dark); font-weight: 700; margin-bottom: 5px; transition: color 1.5s ease; position: relative; z-index: 2;}
+        .result-name { font-size: 42px; margin: 10px 0 20px; color: var(--theme-color-dark); transition: color 1.5s ease;}
+        .progress { font-size: 16px; color: var(--theme-color-dark); font-weight: bold; margin-bottom: 5px; transition: color 1.5s ease; position: relative; z-index: 2;}
+        .result-section-label { font-size: 20px; font-weight: bold; color: var(--theme-color-dark); margin-top: 26px; margin-bottom: 10px; text-align: center; transition: color 1.5s ease; letter-spacing: 2px; position: relative; z-index: 2;}
+        .result-desc { text-align: center; background: rgba(0, 0, 0, 0.03); padding: 18px 22px; border-top: 2px solid var(--theme-color-dark); border-bottom: 2px solid var(--theme-color-dark); margin-top: 0; line-height: 2.4; font-size: 18px; transition: border-color 1.5s ease; border-radius: 4px; position: relative; z-index: 2;}
         
         .result-img-box { width: 100%; max-width: 340px; margin: 0 auto 20px; display: none; }
         .result-img-box img { width: 100%; height: auto; display: block; filter: drop-shadow(0 0 2mm var(--theme-color-dark)) drop-shadow(0 0 1mm var(--theme-color-dark)); transition: filter 1.5s ease;}
@@ -290,7 +295,6 @@
 <div class="container-wrapper">
     <div class="container">
         
-        <!-- ★修正：四隅の装飾にも fade-target クラスを追加し、文字と連動してフェードさせる -->
         <div class="corner-decorations fade-target">
             <div class="static-hitodama top-left"></div>
             <div class="static-hitodama top-right"></div>
@@ -414,7 +418,7 @@
         { q: "<ruby>友達同士<rt>ともだちどうし</rt></ruby>がケンカを<ruby>始<rt>はじ</rt></ruby>めちゃった。<ruby>仲直<rt>なかなお</rt></ruby>りさせるときどうする？", a: "どっちの<ruby>言<rt>い</rt></ruby>い<ruby>分<rt>ぶん</rt></ruby>が<ruby>正<rt>ただ</rt></ruby>しいか、<ruby>冷静<rt>れいせい</rt></ruby>に<ruby>白黒<rt>しろくろ</rt></ruby>をつける", b: "お<ruby>互<rt>たが</rt></ruby>いの<ruby>気持<rt>きも</rt></ruby>ちを<ruby>聞<rt>き</rt></ruby>いて、ふたりが<ruby>傷<rt>きず</rt></ruby>つかないようにまとめる", typeA: "T", typeB: "F" },
         { q: "<ruby>何<rt>なに</rt></ruby>か<ruby>大事<rt>だいじ</rt></ruby>なことを<ruby>決<rt>き</rt></ruby>めるとき、<ruby>最後<rt>さいご</rt></ruby>の<ruby>決<rt>き</rt></ruby>め<ruby>手<rt>て</rt></ruby>になるのは？", a: "「どっちが<ruby>役<rt>やく</rt></ruby>に<ruby>立<rt>た</rt></ruby>つか、<ruby>得<rt>とく</rt></ruby>をするか」という<ruby>頭<rt>あたま</rt></ruby>の<ruby>判断<rt>はんだん</rt></ruby>", b: "「どっちが<ruby>好<rt>す</rt></ruby>きか、ワクワクするか」という<ruby>心<rt>こころ</rt></ruby>の<ruby>気持<rt>きも</rt></ruby>ち", typeA: "T", typeB: "F" },
         { q: "<ruby>仲間<rt>なかま</rt></ruby>が<ruby>失敗<rt>しっぱい</rt></ruby>しちゃった！<ruby>最初<rt>さいしょ</rt></ruby>にどんな<ruby>声<rt>こえ</rt></ruby>をかける？", a: "「<ruby>次<rt>つぎ</rt></ruby>はこう<ruby>直<rt>なお</rt></ruby>せばうまくいくよ」とコツを<ruby>教<rt>おし</rt></ruby>えてあげる", b: "「<ruby>大丈夫<rt>だいじょうぶ</rt></ruby>？<ruby>気<rt>き</rt></ruby>にしないでね」とまずは<ruby>優<rt>やさ</rt></ruby>しく<ruby>励<rt>はげ</rt></ruby>ます", typeA: "T", typeB: "F" },
-        { q: "<ruby>明日<rt>あした</rt></ruby>は<ruby>楽<rt>たの</rt></ruby>しみにしていたおでかけの<ruby>日<rt>ひ</rt></ruby>！<ruby>準備<rt>じゅんび</rt></ruby>はどうする？", a: "<ruby>前<rt>まえ</rt></ruby>の<ruby>日<rt>ひ</rt></ruby>のうちに、<ruby>持<rt>も</rt></ruby>ち<ruby>物<rt>もの</rt></ruby>も<ruby>行<rt>い</rt></ruby>く<ruby>順番<rt>じゅんばん</rt></ruby>もバッチリ<ruby>決<rt>き</rt></ruby>めておく", b: "<ruby>特<rt>とく</rt></ruby>に<ruby>何<rt>なに</rt></ruby>も<ruby>決<rt>き</rt></ruby>めず、その<ruby>日<rt>ひ</rt></ruby>の<ruby>気分<rt>きぶん</rt></ruby>に<ruby>合<rt>あ</rt></ruby>わせてのんびり<ruby>出<rt>出</rt></ruby>かける", typeA: "J", typeB: "P" },
+        { q: "<ruby>明日<rt>あした</rt></ruby>は<ruby>楽<rt>たの</rt></ruby>しみにしていたおでかけの<ruby>日<rt>ひ</rt></ruby>！<ruby>準備<rt>じゅんび</rt></ruby>はどうする？", a: "<ruby>前<rt>まえ</rt></ruby>の<ruby>日<rt>ひ</rt></ruby>のうちに、<ruby>持<rt>も</rt></ruby>ち<ruby>物<rt>もの</rt></ruby>も<ruby>行<rt>い</rt></ruby>く<ruby>順番<rt>じゅんばん</rt></ruby>もバッチリ<ruby>決<rt>き</rt></ruby>めておく", b: "<ruby>特<rt>とく</rt></ruby>に<ruby>何<rt>なに</rt></ruby>も<ruby>決<rt>き</rt></ruby>めず、その<ruby>日<rt>ひ</rt></ruby>の<ruby>気分<rt>きぶん</rt></ruby>に<ruby>合<rt>あ</rt></ruby>わせてのんびり<ruby>出<rt>で</rt></ruby>かける", typeA: "J", typeB: "P" },
         { q: "やるべきことや<ruby>宿題<rt>しゅくだい</rt></ruby>があるとき、どう<ruby>進<rt>すす</rt></ruby>める？", a: "<ruby>先<rt>さき</rt></ruby>にパパッと<ruby>終<rt>お</rt></ruby>わらせて、すっきりしてから<ruby>遊<rt>あそ</rt></ruby>ぶ", b: "ギリギリまで<ruby>楽<rt>たの</rt></ruby>しく<ruby>遊<rt>あそ</rt></ruby>んで、<ruby>最後<rt>さいご</rt></ruby>に<ruby>一気<rt>いっき</rt></ruby>に<ruby>集中<rt>しゅうちゅう</rt></ruby>して<ruby>終<rt>お</rt></ruby>わらせる", typeA: "J", typeB: "P" },
         { q: "<ruby>予定<rt>よてい</rt></ruby>していた<ruby>計画<rt>けいかく</rt></ruby>が<ruby>急<rt>きゅう</rt></ruby>に<ruby>変<rt>か</rt></ruby>わっちゃった！どう<ruby>感<rt>かん</rt></ruby>じる？", a: "「<ruby>予定<rt>よてい</rt></ruby><ruby>通<rt>どお</rt></ruby>りにいかない…」とモヤモヤする", b: "「まあいっか！<ruby>別<rt>べつ</rt></ruby>のことして<ruby>遊<rt>あそ</rt></ruby>ぼう」と<ruby>気楽<rt>きらく</rt></ruby>に<ruby>楽<rt>たの</rt></ruby>しむ", typeA: "J", typeB: "P" }
     ];
@@ -614,7 +618,6 @@
         triggerFadeIn(); 
     }
 
-    // ★修正：四隅の装飾（.corner-decorations）もフェードイン・フェードアウトの対象に含める
     function triggerFadeIn() {
         const elements = document.querySelectorAll('.active .fade-target, .corner-decorations.fade-target');
         elements.forEach(el => {
