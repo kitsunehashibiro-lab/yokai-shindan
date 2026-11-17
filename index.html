@@ -20,7 +20,6 @@
             --corner-hitodama: url('Hito_M.png');
         }
 
-        /* ★修正：背景のグラデーションを body ではなく html に適用し、スマホでのスクロール切れを完全に防ぐ */
         html {
             min-height: 100%;
             background: linear-gradient(135deg, var(--theme-color-dark) 0%, var(--theme-color-light) 100%);
@@ -55,16 +54,13 @@
             margin: 0; padding: 50px 0; box-sizing: border-box;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh; text-align: center; overflow-x: hidden;
-            /* bodyの背景は透明にしてhtmlのグラデーションを透けさせる */
             background: transparent; 
         }
 
-        /* ★修正：ルビ（ふりがな）を少し下へずらし、漢字との隙間を縮める */
         ruby { ruby-align: center; }
         rt { font-size: 0.45em; color: inherit; opacity: 0.85; transform: translateY(1px); line-height: 1; }
 
         .checker-pattern {
-            /* ★修正：市松模様も画面全体に完全固定 */
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background-image:
               linear-gradient(45deg, rgba(0,0,0,0.05) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.05)),
@@ -97,7 +93,6 @@
             opacity: 0.9;
         }
         
-        /* ★修正：下の人魂（bottom）を上に持ち上げ、枠内にスッキリ収める */
         .static-hitodama.top-left { top: 12px; left: 12px; transform: rotate(0deg); }
         .static-hitodama.top-right { top: 12px; right: 12px; transform: rotate(0deg); }
         .static-hitodama.bottom-left { bottom: 12px; left: 12px; transform: rotate(0deg); }
@@ -107,7 +102,6 @@
         h1 { font-size: 34px; letter-spacing: 4px; margin-bottom: 10px; border-bottom: 2px solid var(--theme-color-dark); display: inline-block; padding: 0 20px 10px; transition: border-color 1.5s ease;}
         .subtitle { color: var(--theme-color-dark); font-size: 15px; margin-bottom: 30px; opacity: 0.8; transition: color 1.5s ease;}
         
-        /* 質問テキストなど */
         p { line-height: 2.4; font-size: 19px; margin-bottom: 20px; font-weight: bold; position: relative; z-index: 2;}
         
         .ofuda-btn {
@@ -268,6 +262,7 @@
         .result-img-box { width: 100%; max-width: 340px; margin: 0 auto 20px; display: none; }
         .result-img-box img { width: 100%; height: auto; display: block; filter: drop-shadow(0 0 2mm var(--theme-color-dark)) drop-shadow(0 0 1mm var(--theme-color-dark)); transition: filter 1.5s ease;}
         
+        /* ★修正：スタート画面の初期 active を外し、JavaScriptで判定するように変更 */
         .screen { display: none; position: relative; z-index: 2;}
         .screen.active { display: block; }
         .fade-target { opacity: 0; }
@@ -307,7 +302,7 @@
             <div class="static-hitodama bottom-right"></div>
         </div>
 
-        <div id="start-screen" class="screen active">
+        <div id="start-screen" class="screen">
             <h1 class="fade-target"><ruby>妖怪<rt>ようかい</rt></ruby><ruby>性格<rt>せいかく</rt></ruby><ruby>診断<rt>しんだん</rt></ruby></h1>
             <div class="subtitle fade-target">〜 あなたの<ruby>呼<rt>よ</rt></ruby>び<ruby>声<rt>ごえ</rt></ruby>に<ruby>応<rt>こた</rt></ruby>える<ruby>十六<rt>じゅうろく</rt></ruby>の<ruby>怪異<rt>かいい</rt></ruby> 〜</div>
             <p class="fade-target"><ruby>全十二問<rt>ぜんじゅうにもん</rt></ruby>の<ruby>問<rt>と</rt></ruby>いに<ruby>直感<rt>ちょっかん</rt></ruby>でお<ruby>答<rt>こた</rt></ruby>えください。<br>あなたの<ruby>魂<rt>たましい</rt></ruby>の<ruby>波長<rt>はちょう</rt></ruby>に<ruby>惹<rt>ひ</rt></ruby>かれ、<ruby>召喚<rt>しょうかん</rt></ruby>される「<ruby>妖怪<rt>ようかい</rt></ruby>」を<ruby>導<rt>みちび</rt></ruby>き<ruby>出<rt>だ</rt></ruby>します。</p>
@@ -456,9 +451,21 @@
     let isAudioEnabled = false;
     let currentResultType = "";
 
-    window.onload = () => {
-        triggerFadeIn();
-    };
+    // ★追加：ページを開いた瞬間に、URLパラメータを見て裏側の画面を切り替えておく
+    document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const typeParam = urlParams.get('type');
+        
+        if (typeParam && resultsData[typeParam]) {
+            // パラメータがある場合は結果画面をスタンバイ
+            document.getElementById('start-screen').classList.remove('active');
+            showDirectResult(typeParam);
+        } else {
+            // パラメータがない場合はスタート画面をスタンバイ
+            document.getElementById('start-screen').classList.add('active');
+            triggerFadeIn();
+        }
+    });
 
     function initSite(enableAudio) {
         isAudioEnabled = enableAudio;
@@ -469,13 +476,6 @@
                 bgm.volume = 0.3;
                 bgm.play().catch(e => console.log("BGM再生待機:", e));
             }
-        }
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const typeParam = urlParams.get('type');
-        
-        if (typeParam && resultsData[typeParam]) {
-            showDirectResult(typeParam);
         }
     }
 
@@ -526,7 +526,8 @@
     }
 
     function getShareUrl(typeCode) {
-        const baseUrl = window.location.href.split('?')[0];
+        // パラメータやハッシュなどを除いた純粋なURLを取得
+        const baseUrl = window.location.href.split('?')[0].split('#')[0];
         if (typeCode) {
             return baseUrl + '?type=' + typeCode;
         }
